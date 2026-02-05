@@ -8,7 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Freelancer Radio',
+        name: 'freelancerad.io',
         short_name: 'FR',
         description: 'The sound of serious freelance work.',
         start_url: '/',

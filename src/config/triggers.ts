@@ -9,8 +9,8 @@ export const triggers: Trigger[] = [
     duration: 25 * 60,
     track: {
       id: 'trigger-pomodoro',
-      url: getTrackUrl('triggers/pomodoro.mp3'),
-      duration: 25 * 60,
+      url: getTrackUrl('triggers/Alistair Webster - Productive Pomodoro.mp3'),
+      duration: 1508,
       title: 'Productive Pomodoro',
       artist: 'GBM Music',
       buyUrl: '#', // TODO: real GBM buy link
@@ -25,8 +25,8 @@ export const triggers: Trigger[] = [
     duration: 20 * 60,
     track: {
       id: 'trigger-power-nap',
-      url: getTrackUrl('triggers/power-nap.mp3'),
-      duration: 20 * 60,
+      url: getTrackUrl('triggers/Send me to Sleep Extended V2.mp3'),
+      duration: 2374,
       title: 'Send Me to Sleep',
       artist: 'GBM Music',
       buyUrl: '#',

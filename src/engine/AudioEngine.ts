@@ -44,11 +44,11 @@ export class AudioEngine {
     this.warmedUp = true
   }
 
-  async play(url: string, seekTo = 0): Promise<void> {
+  async play(url: string, seekTo = 0, fadeInMs = 800): Promise<void> {
     this.cancelCrossfade()
     const player = this.active
     player.src = url
-    player.volume = this._volume
+    player.volume = 0
     player.currentTime = seekTo
     player.onended = () => this.onTrackEndCallback?.()
 
@@ -56,7 +56,26 @@ export class AudioEngine {
       await player.play()
     } catch (e) {
       console.warn('Audio play failed:', e)
+      return
     }
+
+    const startTime = performance.now()
+    const targetVol = this._volume
+
+    const fadeIn = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / fadeInMs, 1)
+      const eased = progress * progress * (3 - 2 * progress) // smoothstep
+      player.volume = targetVol * eased
+
+      if (progress < 1) {
+        this.crossfadeId = requestAnimationFrame(fadeIn)
+      } else {
+        this.crossfadeId = null
+      }
+    }
+
+    this.crossfadeId = requestAnimationFrame(fadeIn)
   }
 
   async crossfadeTo(url: string, seekTo = 0, durationMs = 2000): Promise<void> {
@@ -112,8 +131,26 @@ export class AudioEngine {
     this.active.pause()
   }
 
-  resume(): void {
-    this.active.play().catch(() => {})
+  resume(fadeInMs = 400): void {
+    const player = this.active
+    player.volume = 0
+    player.play().catch(() => {})
+
+    const startTime = performance.now()
+    const targetVol = this._volume
+
+    const fadeIn = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / fadeInMs, 1)
+      const eased = progress * progress * (3 - 2 * progress)
+      player.volume = targetVol * eased
+
+      if (progress < 1) {
+        requestAnimationFrame(fadeIn)
+      }
+    }
+
+    requestAnimationFrame(fadeIn)
   }
 
   setVolume(v: number): void {
