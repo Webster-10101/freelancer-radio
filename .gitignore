@@ -26,3 +26,7 @@ public/audio/*.mp3
 *.njsproj
 *.sln
 *.sw?
+
+# Environment
+.env
+.env.*

@@ -132,6 +132,35 @@ npm run build    # Production build
 npx tsc --noEmit # Type check
 ```
 
+## Future Roadmap
+
+### Analytics
+Track usage to understand how people actually use the app:
+- **Channel usage** — which channels are played, how long per session
+- **Trigger usage** — which triggers are used, completion rate (did they finish the timer or bail?)
+- **Session duration** — how long people stay on the site
+- Cloudflare Web Analytics is the baseline option (free, no cookies, privacy-friendly). If deeper event tracking is needed (channel switches, trigger starts/completes), consider something like Plausible or a lightweight custom event layer.
+
+### Deployment & Limits
+- **Vercel** — fine for hosting a static/client-side app like this. Free tier generous for early stage.
+- **Usage limits** — add rate limiting or sensible caps so the R2 egress can't be abused (e.g. if someone scripts repeated audio fetches). Cloudflare R2 free egress helps, but worth monitoring.
+- **Caching** — ensure audio files have long cache headers so repeat visits don't re-fetch.
+
+### Feedback / Suggestions
+- Small icon (bottom-right corner) that opens a lightweight feedback form
+- On submit, sends an email (e.g. via a simple serverless function or a service like Formspree/Resend)
+- Keep it minimal: text field + optional email for reply. No login required.
+
+### Music & Licensing
+- **Original music** — longer term, commission or source original tracks to reduce licensing dependency and open up monetisation
+- **"Get in touch" prompt** — subtle note on the site (e.g. in About or a dedicated section) inviting musicians/producers to reach out. Opens the door to commissions, collaborations, and sponsorship without being salesy.
+
+### Community / Social Layer
+- **"What are you working on?"** — optional input where users can write what they're focused on
+- Other people's task descriptions float by gently (like a shared ambient workspace vibe)
+- Lightweight, anonymous or pseudonymous — no accounts needed initially
+- Would need a simple backend (WebSocket or polling) — good Phase 3 candidate once there's meaningful traffic
+
 ## Open Questions / Risks
 - Node 18: works now but vite-plugin-pwa workbox deps want Node 20. Functional with warnings.
 - Breathe trigger track TBC — Al needs to decide/create one
