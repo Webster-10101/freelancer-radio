@@ -19,10 +19,10 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 **Complete:**
 - Full project scaffold (Vite 5 + React + TS + Tailwind 3)
 - PWA setup via vite-plugin-pwa (manifest, service worker, meta tags)
-- AudioEngine — dual HTMLAudioElement with crossfade, preload, fade-in on play/resume, iOS warm-up, visibility change handling
+- AudioEngine — dual HTMLAudioElement with crossfade, preload, fade-in on play/resume, iOS warm-up, visibility change handling, `isLoading` state for UI feedback
 - RadioSimulator — timestamp-based "live radio" position calculation
 - TimerEngine — countdown with tick/complete callbacks, pause/resume
-- AnimationEngine — Canvas 2D with ambient gradient blobs + flowing brainwave/river streams per channel
+- AnimationEngine — Canvas 2D with ambient gradient blobs + flowing brainwave/river streams per channel, `prefers-reduced-motion` support
 - All React hooks (useAudio, useRadio, useTimer, useAnimation, useWakeLock)
 - App state via React Context (includes `selectedChannelId` for channel preference)
 - All copy integrated (tagline, about, channel descriptions)
@@ -49,6 +49,11 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 - Waves flow L→R, blurry/soft, Energy channel pulses
 - Background gradient blobs work, river waves fade in on play
 - Channel palette colours shift per channel
+- `prefers-reduced-motion` support — shows static gradient for users with reduced motion enabled (accessibility + performance)
+- Optimised wave count (4 on desktop, 3 on mobile) for better performance on lower-power devices
+
+**UX:**
+- Loading spinner on play button while audio buffers from R2 — gives feedback during initial load
 
 **Not started:**
 - Favicon (currently default Vite icon — needs custom icon for browser tab + PWA)
