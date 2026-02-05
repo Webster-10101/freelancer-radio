@@ -69,6 +69,8 @@ export class AnimationEngine {
   private _isPlaying = false
   private riverOpacity = 0 // fades in when playing
   private activeChannelId: string = 'default'
+  private prefersReducedMotion = false
+  private reducedMotionQuery: MediaQueryList | null = null
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -76,9 +78,20 @@ export class AnimationEngine {
     if (!ctx) throw new Error('Failed to get 2d context')
     this.ctx = ctx
     this.isMobile = window.innerWidth < 768 || navigator.maxTouchPoints > 1
+    this.initReducedMotionListener()
     this.resize(window.innerWidth, window.innerHeight)
     this.initBlobs()
     this.initWaves()
+  }
+
+  private handleReducedMotionChange = (e: MediaQueryListEvent): void => {
+    this.prefersReducedMotion = e.matches
+  }
+
+  private initReducedMotionListener(): void {
+    this.reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    this.prefersReducedMotion = this.reducedMotionQuery.matches
+    this.reducedMotionQuery.addEventListener('change', this.handleReducedMotionChange)
   }
 
   private initBlobs(): void {
@@ -95,7 +108,7 @@ export class AnimationEngine {
   }
 
   private initWaves(): void {
-    const count = this.isMobile ? 4 : 6
+    const count = this.isMobile ? 3 : 4
     this.waves = Array.from({ length: count }, (_, i) => ({
       amplitude: 20 + Math.random() * 40,
       frequency: 0.003 + Math.random() * 0.004,
@@ -187,6 +200,17 @@ export class AnimationEngine {
     this.ctx.fillStyle = this.getActiveColor(0)
     this.ctx.fillRect(0, 0, w, h)
 
+    // Reduced motion: show simple static gradient, skip expensive animations
+    if (this.prefersReducedMotion) {
+      const gradient = this.ctx.createLinearGradient(0, 0, w, h)
+      gradient.addColorStop(0, this.getActiveColor(0))
+      gradient.addColorStop(0.5, this.getActiveColor(1))
+      gradient.addColorStop(1, this.getActiveColor(2))
+      this.ctx.fillStyle = gradient
+      this.ctx.fillRect(0, 0, w, h)
+      return
+    }
+
     // Draw ambient gradient blobs (always visible)
     const speed = this.currentPalette.speed
     this.ctx.globalCompositeOperation = 'lighter'
@@ -212,8 +236,8 @@ export class AnimationEngine {
       // Energy channel pulse: amplitude and opacity breathe in and out
       const isEnergy = this.activeChannelId === 'energy'
 
-      // Apply blur filter for genuine soft glow
-      this.ctx.filter = 'blur(18px)'
+      // Apply blur filter for genuine soft glow (10px balances aesthetics vs performance)
+      this.ctx.filter = 'blur(10px)'
       this.ctx.lineCap = 'round'
       this.ctx.lineJoin = 'round'
 
@@ -233,7 +257,7 @@ export class AnimationEngine {
         // Build wave path — flows left to right
         this.ctx.beginPath()
 
-        for (let x = 0; x <= w; x += 3) {
+        for (let x = 0; x <= w; x += 5) {
           const flow = timestamp * wave.speed * 150
           const y = baseY
             + Math.sin((x - flow) * wave.frequency + wave.phase) * wave.amplitude * pulseFactor
@@ -264,5 +288,6 @@ export class AnimationEngine {
 
   destroy(): void {
     this.stop()
+    this.reducedMotionQuery?.removeEventListener('change', this.handleReducedMotionChange)
   }
 }
