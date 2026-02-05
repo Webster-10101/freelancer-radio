@@ -236,8 +236,8 @@ export class AnimationEngine {
       // Energy channel pulse: amplitude and opacity breathe in and out
       const isEnergy = this.activeChannelId === 'energy'
 
-      // Apply blur filter for genuine soft glow (10px balances aesthetics vs performance)
-      this.ctx.filter = 'blur(10px)'
+      // Apply blur filter for genuine soft glow
+      this.ctx.filter = 'blur(18px)'
       this.ctx.lineCap = 'round'
       this.ctx.lineJoin = 'round'
 
@@ -257,7 +257,7 @@ export class AnimationEngine {
         // Build wave path — flows left to right
         this.ctx.beginPath()
 
-        for (let x = 0; x <= w; x += 5) {
+        for (let x = 0; x <= w; x += 3) {
           const flow = timestamp * wave.speed * 150
           const y = baseY
             + Math.sin((x - flow) * wave.frequency + wave.phase) * wave.amplitude * pulseFactor
