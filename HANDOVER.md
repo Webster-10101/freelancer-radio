@@ -164,12 +164,11 @@ Track usage to understand how people actually use the app:
 - Low effort, nice polish — could do in an hour
 
 ### Track Ordering & Shuffle
-- Currently: tracks play in fixed order (timestamp-based for simulated live radio — everyone hears the same thing at the same time)
+- **Implemented:** Daily shuffle — tracks are shuffled using a seeded PRNG based on the date + channel ID. Everyone on the same day hears the same order (live radio feel), but it changes at midnight for variety.
 - **Future options:**
-  - Shuffle mode — randomise track order per listener
+  - More frequent shuffle (e.g., 4-hourly) — one-line change to the seed in `RadioSimulator.ts`
   - Smarter rotation — ensure variety, avoid repeats, weight by energy/mood
   - Auto-ident insertion — play an ident every N tracks automatically
-- Not urgent — fixed order works fine for MVP, but worth revisiting as content library grows
 
 ### Music & Licensing
 - **Original music** — longer term, commission or source original tracks to reduce licensing dependency and open up monetisation
