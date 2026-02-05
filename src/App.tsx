@@ -78,6 +78,7 @@ function AppInner() {
             onPause={handlePause}
             onResume={handleResume}
             isPlaying={radio.isPlaying}
+            isLoading={radio.isLoading}
             volume={radio.volume}
             onVolumeChange={handleVolumeChange}
           />

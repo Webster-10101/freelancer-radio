@@ -4,6 +4,7 @@ import { AudioEngine } from '../engine/AudioEngine'
 export function useAudio() {
   const engineRef = useRef<AudioEngine | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [volume, setVolumeState] = useState(1)
 
   useEffect(() => {
@@ -24,13 +25,17 @@ export function useAudio() {
   }, [])
 
   const play = useCallback(async (url: string, seekTo = 0) => {
+    setIsLoading(true)
     await engineRef.current?.warmUp()
     await engineRef.current?.play(url, seekTo)
+    setIsLoading(false)
     setIsPlaying(true)
   }, [])
 
   const crossfadeTo = useCallback(async (url: string, seekTo = 0, durationMs = 2000) => {
+    setIsLoading(true)
     await engineRef.current?.crossfadeTo(url, seekTo, durationMs)
+    setIsLoading(false)
     setIsPlaying(true)
   }, [])
 
@@ -72,6 +77,7 @@ export function useAudio() {
     onTrackEnd,
     getCurrentTime,
     isPlaying,
+    isLoading,
     volume,
   }
 }

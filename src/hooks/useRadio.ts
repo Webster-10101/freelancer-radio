@@ -87,6 +87,7 @@ export function useRadio() {
     resume: audio.resume,
     setVolume: audio.setVolume,
     isPlaying: audio.isPlaying,
+    isLoading: audio.isLoading,
     volume: audio.volume,
     getCurrentTrack: () => currentTrackRef.current,
   }
