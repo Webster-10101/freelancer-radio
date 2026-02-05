@@ -6,11 +6,13 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 **Domain:** freelancerad.io (registered on Stablepoint, 5 Feb 2026)
 
 ## Live & Repo
+- **Live:** https://freelancerad.io
 - **Code:** `/Users/Alistair/Coding/freelancer-radio/`
+- **GitHub:** https://github.com/Webster-10101/freelancer-radio
+- **Vercel:** connected to GitHub, auto-deploys on push
+- **R2 bucket:** `freelancer-radio-audio` (public URL: `https://pub-86c17558943c4f43984f4fdd502b7d45.r2.dev`)
 - **PRD:** `/Users/Alistair/World/Projects/Freelance Radio/PRD.md`
 - **Project status:** `/Users/Alistair/World/Projects/Freelance Radio.md`
-- **Git:** initialised, first commit 5 Feb 2026
-- **Not yet deployed** — no GitHub remote or Vercel setup yet
 
 ## Current State
 
@@ -49,13 +51,12 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 - Channel palette colours shift per channel
 
 **Not started:**
-- Cloudflare R2 bucket setup + audio upload
-- Git remote (GitHub) + Vercel deployment
 - Support mechanism (Ko-fi etc.)
 - Pomodoro chime audio file (`public/audio/chime.mp3`)
 - Breathe trigger track (TBC)
 - Sprint trigger track (TBC)
 - Buy link URLs (all `#` placeholder)
+- Radio idents
 
 ## Key Decisions & Assumptions
 - **Domain:** freelancerad.io (not freelancerradio.com — unavailable)
@@ -103,15 +104,12 @@ App
 ```
 
 ## Next Steps (Ordered)
-1. Set up Cloudflare R2 bucket, configure CORS, upload tracks
-2. Set `VITE_AUDIO_BASE_URL` env var to R2 bucket URL
-3. Add Breathe + Sprint trigger tracks
-4. Add chime audio file to `public/audio/chime.mp3`
-5. Add real GBM buy link URLs to trigger configs
-6. Push to GitHub
-7. Deploy to Vercel, connect freelancerad.io domain
-8. Set up support mechanism (Ko-fi or similar)
-9. Polish pass — responsive, iOS testing, final copy
+1. Add Breathe + Sprint trigger tracks (or remove from UI for now)
+2. Add chime audio file to `public/audio/chime.mp3`
+3. Add real GBM buy link URLs to trigger configs
+4. Add radio idents (quick win — see Future Roadmap)
+5. Set up support mechanism (Ko-fi or similar)
+6. Polish pass — responsive, iOS testing, final copy
 
 ## Key Source Files
 - `src/engine/AudioEngine.ts` — dual-player crossfade, fade-in, preload, iOS handling
@@ -132,6 +130,14 @@ npm run build    # Production build
 npx tsc --noEmit # Type check
 ```
 
+## Adding New Tracks
+1. **Prepare audio:** Convert to 128kbps MP3, normalise to -14 LUFS
+2. **Upload to R2:** Drop into the right folder (`channels/calm/`, `channels/flow/`, `channels/energy/`, or `triggers/`)
+3. **Update config:** Add track entry to `src/config/channels.ts` or `src/config/triggers.ts` with filename, duration (seconds), title
+4. **Commit & push:** Vercel auto-deploys on push to main
+
+The app doesn't auto-discover files — it plays what's listed in the config.
+
 ## Future Roadmap
 
 ### Analytics
@@ -150,6 +156,20 @@ Track usage to understand how people actually use the app:
 - Small icon (bottom-right corner) that opens a lightweight feedback form
 - On submit, sends an email (e.g. via a simple serverless function or a service like Formspree/Resend)
 - Keep it minimal: text field + optional email for reply. No login required.
+
+### Radio Idents (Quick Win)
+- Short spoken clips ("You're listening to Freelancer Radio", "Back to work", etc.) to enhance the radio feel
+- **Implementation:** Generate with ElevenLabs or similar, convert to MP3, normalise to -14 LUFS, upload to R2
+- **Integration:** Add as short tracks in the channel config, interspersed between music tracks — they'll play in sequence like any other track
+- Low effort, nice polish — could do in an hour
+
+### Track Ordering & Shuffle
+- Currently: tracks play in fixed order (timestamp-based for simulated live radio — everyone hears the same thing at the same time)
+- **Future options:**
+  - Shuffle mode — randomise track order per listener
+  - Smarter rotation — ensure variety, avoid repeats, weight by energy/mood
+  - Auto-ident insertion — play an ident every N tracks automatically
+- Not urgent — fixed order works fine for MVP, but worth revisiting as content library grows
 
 ### Music & Licensing
 - **Original music** — longer term, commission or source original tracks to reduce licensing dependency and open up monetisation
