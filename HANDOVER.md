@@ -51,6 +51,7 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 - Channel palette colours shift per channel
 
 **Not started:**
+- Favicon (currently default Vite icon — needs custom icon for browser tab + PWA)
 - Support mechanism (Ko-fi etc.)
 - Pomodoro chime audio file (`public/audio/chime.mp3`)
 - Breathe trigger track (TBC)
