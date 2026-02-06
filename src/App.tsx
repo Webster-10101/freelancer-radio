@@ -11,6 +11,7 @@ import { useRadio } from './hooks/useRadio'
 import { useAudio } from './hooks/useAudio'
 import { useTimer } from './hooks/useTimer'
 import { useWakeLock } from './hooks/useWakeLock'
+import { useChannelPreload } from './hooks/useChannelPreload'
 import type { Channel, Trigger } from './types'
 import { getTrigger } from './config/triggers'
 
@@ -22,6 +23,9 @@ function AppInner() {
   const triggerAudio = useAudio()
   const timer = useTimer()
   const wakeLock = useWakeLock()
+
+  // Preload current track for each channel so playback starts faster
+  useChannelPreload()
 
   const isPlaying = radio.isPlaying || triggerAudio.isPlaying
 
