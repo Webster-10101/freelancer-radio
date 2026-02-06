@@ -75,6 +75,16 @@ export function useRadio() {
     await audio.play(pos.track.url, pos.seekSeconds)
     scheduleNextTrack()
 
+    // Use audio ended event as fallback for background tab advancement
+    // This fires reliably even when setTimeout is throttled
+    audio.onTrackEnd(() => {
+      if (!simulatorRef.current || !isActiveRef.current) return
+      const newPos = simulatorRef.current.getPositionAtTime()
+      audio.crossfadeTo(newPos.track.url, newPos.seekSeconds)
+      currentTrackRef.current = newPos.track
+      scheduleNextTrack()
+    })
+
     // Drift correction every 15s (more frequent to handle background throttling)
     driftIntervalRef.current = setInterval(() => {
       if (!simulatorRef.current) return

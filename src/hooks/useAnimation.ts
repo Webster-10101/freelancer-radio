@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimationEngine, type Palette } from '../engine/AnimationEngine'
 
-export function useAnimation(palette?: Palette, isPlaying = false, channelId?: string) {
+export function useAnimation(palette?: Palette) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<AnimationEngine | null>(null)
 
@@ -30,12 +30,6 @@ export function useAnimation(palette?: Palette, isPlaying = false, channelId?: s
       engineRef.current.setPalette(palette)
     }
   }, [palette])
-
-  useEffect(() => {
-    if (engineRef.current) {
-      engineRef.current.setPlaying(isPlaying, channelId)
-    }
-  }, [isPlaying, channelId])
 
   return canvasRef
 }

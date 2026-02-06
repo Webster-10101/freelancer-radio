@@ -4,10 +4,9 @@ import { useAppContext } from '../../state/AppContext'
 import { channels } from '../../config/channels'
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { activeChannelId, mode } = useAppContext()
+  const { activeChannelId } = useAppContext()
   const channel = activeChannelId ? channels.find(c => c.id === activeChannelId) : null
-  const isPlaying = mode !== 'idle'
-  const canvasRef = useAnimation(channel?.palette, isPlaying, activeChannelId ?? undefined)
+  const canvasRef = useAnimation(channel?.palette)
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
