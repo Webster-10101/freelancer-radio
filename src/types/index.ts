@@ -29,6 +29,7 @@ export interface Trigger {
   track: Track
   hasProgressRing: boolean
   hasChime: boolean
+  comingSoon?: boolean
 }
 
 export type PlayMode = 'idle' | 'channel' | 'trigger'

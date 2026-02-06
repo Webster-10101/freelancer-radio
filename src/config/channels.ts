@@ -67,6 +67,20 @@ export const channels: Channel[] = [
         title: 'Ripples',
         artist: 'GBM Music',
       },
+      {
+        id: 'ident-calm-1',
+        url: getTrackUrl('idents/ident-1.mp3'),
+        duration: 2,
+        title: 'Ident',
+        artist: 'Freelancer Radio',
+      },
+      {
+        id: 'ident-calm-2',
+        url: getTrackUrl('idents/ident-2.mp3'),
+        duration: 4,
+        title: 'Ident',
+        artist: 'Freelancer Radio',
+      },
     ],
     get totalDuration() {
       return this.tracks.reduce((sum, t) => sum + t.duration, 0)
@@ -193,6 +207,20 @@ export const channels: Channel[] = [
         title: 'Moving Closer',
         artist: 'GBM Music',
       },
+      {
+        id: 'ident-flow-1',
+        url: getTrackUrl('idents/ident-1.mp3'),
+        duration: 2,
+        title: 'Ident',
+        artist: 'Freelancer Radio',
+      },
+      {
+        id: 'ident-flow-2',
+        url: getTrackUrl('idents/ident-2.mp3'),
+        duration: 4,
+        title: 'Ident',
+        artist: 'Freelancer Radio',
+      },
     ],
     get totalDuration() {
       return this.tracks.reduce((sum, t) => sum + t.duration, 0)
@@ -311,6 +339,20 @@ export const channels: Channel[] = [
         duration: 156,
         title: 'Soon to Be',
         artist: 'GBM Music',
+      },
+      {
+        id: 'ident-energy-1',
+        url: getTrackUrl('idents/ident-1.mp3'),
+        duration: 2,
+        title: 'Ident',
+        artist: 'Freelancer Radio',
+      },
+      {
+        id: 'ident-energy-2',
+        url: getTrackUrl('idents/ident-2.mp3'),
+        duration: 4,
+        title: 'Ident',
+        artist: 'Freelancer Radio',
       },
     ],
     get totalDuration() {

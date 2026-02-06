@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { AppProvider, useAppContext } from './state/AppContext'
 import { AppShell } from './components/layout/AppShell'
 import { Header } from './components/layout/Header'
@@ -12,10 +12,12 @@ import { useAudio } from './hooks/useAudio'
 import { useTimer } from './hooks/useTimer'
 import { useWakeLock } from './hooks/useWakeLock'
 import type { Channel, Trigger } from './types'
+import { getTrigger } from './config/triggers'
 
 function AppInner() {
   const [activeTab, setActiveTab] = useState<'channels' | 'triggers'>('channels')
-  const { setChannel, setTrigger, stopAll, setCurrentTrack } = useAppContext()
+  const { setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId } = useAppContext()
+  const chimeRef = useRef<HTMLAudioElement | null>(null)
   const radio = useRadio()
   const triggerAudio = useAudio()
   const timer = useTimer()
@@ -65,6 +67,21 @@ function AppInner() {
     radio.setVolume(v)
     triggerAudio.setVolume(v)
   }, [radio, triggerAudio])
+
+  // Play chime when timer completes (if trigger has chime enabled)
+  useEffect(() => {
+    if (timer.state === 'complete' && activeTriggerId) {
+      const trigger = getTrigger(activeTriggerId)
+      if (trigger.hasChime) {
+        // Create chime audio element if not exists
+        if (!chimeRef.current) {
+          chimeRef.current = new Audio('/audio/chime.mp3')
+        }
+        chimeRef.current.currentTime = 0
+        chimeRef.current.play().catch(() => {})
+      }
+    }
+  }, [timer.state, activeTriggerId])
 
   return (
     <AppShell>

@@ -7,13 +7,23 @@ export function Footer() {
       </p>
       <div className="mt-4 flex items-center justify-center gap-4">
         <span className="text-[11px] tracking-wide text-white/15">
-          Music by GBM Music &times; FFG
+          Music by{' '}
+          <a
+            href="https://goodbackgroundmusic.co.uk"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/25 transition-colors duration-300 hover:text-white/45"
+          >
+            GBM Music
+          </a>
         </span>
         <a
-          href="#"
+          href="https://buymeacoffee.com/freelanceradio"
+          target="_blank"
+          rel="noopener noreferrer"
           className="rounded-full border border-white/[0.06] px-3 py-1 text-[11px] tracking-wide text-white/30 transition-all duration-300 hover:border-white/[0.12] hover:text-white/50"
         >
-          Support freelancerad.io
+          Buy me a coffee
         </a>
       </div>
     </footer>

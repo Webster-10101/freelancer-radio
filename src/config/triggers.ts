@@ -13,7 +13,7 @@ export const triggers: Trigger[] = [
       duration: 1508,
       title: 'Productive Pomodoro',
       artist: 'GBM Music',
-      buyUrl: '#', // TODO: real GBM buy link
+      buyUrl: 'https://gbmmusicuk.bandcamp.com/track/productive-pomodoro',
     },
     hasProgressRing: true,
     hasChime: true,
@@ -29,7 +29,7 @@ export const triggers: Trigger[] = [
       duration: 2374,
       title: 'Send Me to Sleep',
       artist: 'GBM Music',
-      buyUrl: '#',
+      buyUrl: 'https://gbmmusicuk.bandcamp.com/track/send-me-to-sleep-a-song-to-fall-asleep-to-extended-version',
     },
     hasProgressRing: false,
     hasChime: true,
@@ -49,6 +49,7 @@ export const triggers: Trigger[] = [
     },
     hasProgressRing: false,
     hasChime: true,
+    comingSoon: true,
   },
   {
     id: 'sprint',
@@ -65,6 +66,7 @@ export const triggers: Trigger[] = [
     },
     hasProgressRing: false,
     hasChime: true,
+    comingSoon: true,
   },
 ]
 
