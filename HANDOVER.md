@@ -19,18 +19,25 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 **Complete:**
 - Full project scaffold (Vite 5 + React + TS + Tailwind 3)
 - PWA setup via vite-plugin-pwa (manifest, service worker, meta tags)
-- AudioEngine — dual HTMLAudioElement with crossfade, preload, fade-in on play/resume, iOS warm-up, visibility change handling, `isLoading` state for UI feedback
+- AudioEngine — dual HTMLAudioElement with crossfade, preload, fade-in on play/resume, iOS warm-up, visibility change handling, `isLoading` state for UI feedback, `onTrackEnd` callback for background tab support
 - RadioSimulator — timestamp-based "live radio" position calculation
 - TimerEngine — countdown with tick/complete callbacks, pause/resume
-- AnimationEngine — Canvas 2D with ambient gradient blobs + flowing brainwave/river streams per channel, `prefers-reduced-motion` support
-- All React hooks (useAudio, useRadio, useTimer, useAnimation, useWakeLock)
+- AnimationEngine — Canvas 2D with ambient gradient blobs, `prefers-reduced-motion` support
+- All React hooks (useAudio, useRadio, useTimer, useAnimation, useWakeLock, useChannelPreload)
 - App state via React Context (includes `selectedChannelId` for channel preference)
 - All copy integrated (tagline, about, channel descriptions)
 - Clean TypeScript build, zero errors
-- **41 real GBM Music tracks wired in** (8 calm, 16 flow, 15 energy, 2 triggers)
+- **41 real GBM Music tracks + 2 radio idents wired in** (8 calm, 16 flow, 15 energy, 2 triggers, 2 idents per channel)
 - All tracks converted to 128kbps MP3 and normalised to -14 LUFS (EBU R128 broadcast standard)
 - Branding updated to freelancerad.io throughout (header, footer, page title, PWA manifest)
 - Dev server working with real audio playback
+- **Favicon** — custom SVG + PWA icons (192px, 512px)
+- **Radio idents** — 2 spoken idents shuffled into each channel's playlist
+- **Chime** — plays on timer completion for triggers with `hasChime: true`
+- **Support link** — Buy Me a Coffee (https://buymeacoffee.com/freelanceradio)
+- **Attribution** — "Music by GBM Music" with link to goodbackgroundmusic.co.uk
+- **Buy links** — Bandcamp links for Pomodoro and Power Nap triggers
+- **Coming soon triggers** — Breathe and Sprint show faded with "Coming soon" badge
 
 **UI — hero play button design:**
 - Single hero play/pause button + segmented channel selector (Calm/Flow/Energy pills)
@@ -46,23 +53,19 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 - All tracks volume-normalised for consistent radio feel
 
 **Animation visuals:**
-- Waves flow L→R, blurry/soft, Energy channel pulses
-- Background gradient blobs work, river waves fade in on play
+- Background gradient blobs with smooth colour transitions per channel
 - Channel palette colours shift per channel
-- `prefers-reduced-motion` support — shows static gradient for users with reduced motion enabled (accessibility + performance)
-- Optimised wave count (4 on desktop, 3 on mobile) for better performance on lower-power devices
+- `prefers-reduced-motion` support — shows static gradient for users with reduced motion enabled
+- Wave animations removed for Safari compatibility and performance
 
 **UX:**
-- Loading spinner on play button while audio buffers from R2 — gives feedback during initial load
+- Loading spinner on play button while audio buffers from R2
+- Flow channel preloads on app mount for faster initial playback
+- Background tab support — tracks advance via `onTrackEnd` event + visibility resync
 
 **Not started:**
-- Favicon (currently default Vite icon — needs custom icon for browser tab + PWA)
-- Support mechanism (Ko-fi etc.)
-- Pomodoro chime audio file (`public/audio/chime.mp3`)
-- Breathe trigger track (TBC)
-- Sprint trigger track (TBC)
-- Buy link URLs (all `#` placeholder)
-- Radio idents
+- Breathe trigger track (TBC) — shows as "Coming soon"
+- Sprint trigger track (TBC) — shows as "Coming soon"
 
 ## Key Decisions & Assumptions
 - **Domain:** freelancerad.io (not freelancerradio.com — unavailable)
@@ -79,17 +82,22 @@ Focus music web app for freelancers. Three channels (Calm/Flow/Energy) with simu
 ### Channels
 | Channel | Tracks | Runtime |
 |---------|--------|---------|
-| Calm | 8 (GBM Vol 1, Vol 3, Let Go) | ~31 min |
-| Flow | 16 (Chilled Vibes, GBM Vol 1, Vol 3, Lo-Fi Life) | ~63 min |
-| Energy | 15 (Chilled Vibes, GBM Vol 1, Vol 2 Euphoria) | ~51 min |
+| Calm | 8 + 2 idents (GBM Vol 1, Vol 3, Let Go) | ~31 min |
+| Flow | 16 + 2 idents (Chilled Vibes, GBM Vol 1, Vol 3, Lo-Fi Life) | ~63 min |
+| Energy | 15 + 2 idents (Chilled Vibes, GBM Vol 1, Vol 2 Euphoria) | ~51 min |
+
+### Idents
+- `ident-1.mp3` (~2s) and `ident-2.mp3` (~4s) in R2 `idents/` folder
+- Shuffled into each channel's daily playlist
+- Source files in `public/audio/`
 
 ### Triggers
-| Trigger | Track | Status |
-|---------|-------|--------|
-| Pomodoro | Productive Pomodoro (25 min) | Ready |
-| Power Nap | Send Me to Sleep Extended (39 min) | Ready |
-| Breathe | TBC | Missing |
-| Sprint | TBC | Missing |
+| Trigger | Track | Status | Buy Link |
+|---------|-------|--------|----------|
+| Pomodoro | Productive Pomodoro (25 min) | Ready | Bandcamp |
+| Power Nap | Send Me to Sleep Extended (39 min) | Ready | Bandcamp |
+| Breathe | TBC | Coming soon | — |
+| Sprint | TBC | Coming soon | — |
 
 Track source files: `/Users/Alistair/Laptop SD Transfer/GBM Music Work/_---Releases - GBM Music`
 
@@ -110,23 +118,22 @@ App
 ```
 
 ## Next Steps (Ordered)
-1. Add Breathe + Sprint trigger tracks (or remove from UI for now)
-2. Add chime audio file to `public/audio/chime.mp3`
-3. Add real GBM buy link URLs to trigger configs
-4. Add radio idents (quick win — see Future Roadmap)
-5. Set up support mechanism (Ko-fi or similar)
-6. Polish pass — responsive, iOS testing, final copy
+1. **Fix background tab track advancement** — `onTrackEnd` callback added but still not advancing reliably when tab is backgrounded. May need Web Audio API or service worker approach.
+2. Add Breathe + Sprint trigger tracks (or keep as "Coming soon")
+3. Polish pass — responsive, iOS testing, final copy
 
 ## Key Source Files
-- `src/engine/AudioEngine.ts` — dual-player crossfade, fade-in, preload, iOS handling
+- `src/engine/AudioEngine.ts` — dual-player crossfade, fade-in, preload, iOS handling, onTrackEnd callback
 - `src/engine/RadioSimulator.ts` — timestamp-based live radio position calc
-- `src/engine/AnimationEngine.ts` — Canvas gradient blobs + river waves
+- `src/engine/AnimationEngine.ts` — Canvas gradient blobs (waves removed)
 - `src/engine/TimerEngine.ts` — countdown for triggers
-- `src/config/channels.ts` — channel definitions with real tracks + palettes
-- `src/config/triggers.ts` — trigger definitions (2 real, 2 placeholder)
+- `src/config/channels.ts` — channel definitions with real tracks + idents + palettes
+- `src/config/triggers.ts` — trigger definitions (2 ready, 2 coming soon, with Bandcamp buy links)
 - `src/config/audio.ts` — audio base URL resolver (dev: `/dev-audio`, prod: R2 URL)
 - `src/state/AppContext.tsx` — global state
+- `src/hooks/useChannelPreload.ts` — preloads Flow channel on mount for faster playback
 - `src/components/channels/ChannelPanel.tsx` — hero play button + channel selector + volume
+- `src/components/triggers/TriggerCard.tsx` — trigger cards with "Coming soon" state
 
 ## Commands
 ```bash
@@ -163,11 +170,10 @@ Track usage to understand how people actually use the app:
 - On submit, sends an email (e.g. via a simple serverless function or a service like Formspree/Resend)
 - Keep it minimal: text field + optional email for reply. No login required.
 
-### Radio Idents (Quick Win)
-- Short spoken clips ("You're listening to Freelancer Radio", "Back to work", etc.) to enhance the radio feel
-- **Implementation:** Generate with ElevenLabs or similar, convert to MP3, normalise to -14 LUFS, upload to R2
-- **Integration:** Add as short tracks in the channel config, interspersed between music tracks — they'll play in sequence like any other track
-- Low effort, nice polish — could do in an hour
+### Radio Idents ✓ DONE
+- 2 idents generated with ElevenLabs (Al's voice), normalised to -14 LUFS
+- Added to all 3 channels, shuffled daily with music tracks
+- Files: `idents/ident-1.mp3` (~2s), `idents/ident-2.mp3` (~4s) on R2
 
 ### Track Ordering & Shuffle
 - **Implemented:** Daily shuffle — tracks are shuffled using a seeded PRNG based on the date + channel ID. Everyone on the same day hears the same order (live radio feel), but it changes at midnight for variety.
@@ -187,8 +193,8 @@ Track usage to understand how people actually use the app:
 - Would need a simple backend (WebSocket or polling) — good Phase 3 candidate once there's meaningful traffic
 
 ## Open Questions / Risks
+- **Background tab audio** — tracks don't advance reliably when tab is backgrounded. Attempted fixes: visibility resync, onTrackEnd callback, 15s drift correction. May need Web Audio API or service worker for reliable background playback.
 - Node 18: works now but vite-plugin-pwa workbox deps want Node 20. Functional with warnings.
 - Breathe trigger track TBC — Al needs to decide/create one
 - Sprint trigger track TBC — from GBM running catalog
-- Buy link URLs all `#` — need real GBM store links
 - Analytics approach TBD — Cloudflare Web Analytics suggested (free, no cookies)
