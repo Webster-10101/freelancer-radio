@@ -59,6 +59,13 @@ export class AudioEngine {
       return
     }
 
+    // Background tab: skip fade, set volume immediately
+    // (rAF doesn't fire in background, leaving volume at 0 = silence)
+    if (document.visibilityState === 'hidden') {
+      player.volume = this._volume
+      return
+    }
+
     const startTime = performance.now()
     const targetVol = this._volume
 
@@ -95,12 +102,22 @@ export class AudioEngine {
     }
 
     this.activeSlot = this.activeSlot === 'A' ? 'B' : 'A'
+    outgoing.onended = null // Prevent stale callback from outgoing track
+
+    this.cancelCrossfade()
+
+    // Background tab: skip crossfade animation, set volumes immediately
+    // (rAF doesn't fire in background, leaving incoming at 0 = silence)
+    if (document.visibilityState === 'hidden') {
+      incoming.volume = this._volume
+      outgoing.pause()
+      outgoing.src = ''
+      return
+    }
 
     const startTime = performance.now()
     const startVolOut = outgoing.volume
     const targetVol = this._volume
-
-    this.cancelCrossfade()
 
     const animate = (now: number) => {
       const elapsed = now - startTime
@@ -179,7 +196,19 @@ export class AudioEngine {
   }
 
   handleVisibilityChange(): void {
-    if (document.visibilityState === 'visible' && !this.active.paused) {
+    if (document.visibilityState === 'hidden') {
+      // Tab going to background: complete any in-progress fade immediately
+      // so rAF stopping doesn't leave volume stuck at 0
+      if (this.crossfadeId !== null) {
+        this.cancelCrossfade()
+        this.active.volume = this._volume
+        const outgoing = this.inactive
+        if (!outgoing.paused && outgoing.src) {
+          outgoing.pause()
+          outgoing.src = ''
+        }
+      }
+    } else if (!this.active.paused) {
       this.active.play().catch(() => {})
     }
   }

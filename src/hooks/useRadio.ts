@@ -85,18 +85,18 @@ export function useRadio() {
       scheduleNextTrack()
     })
 
-    // Drift correction every 15s (more frequent to handle background throttling)
+    // Drift correction every 5s — catches background throttling faster
     driftIntervalRef.current = setInterval(() => {
       if (!simulatorRef.current) return
       const expected = simulatorRef.current.getPositionAtTime()
       const actual = audio.getCurrentTime()
       const drift = Math.abs(expected.seekSeconds - actual)
-      if (drift > 2) {
-        // Re-sync by seeking
-        audio.play(expected.track.url, expected.seekSeconds)
+      if (currentTrackRef.current?.id !== expected.track.id || drift > 1) {
+        audio.crossfadeTo(expected.track.url, expected.seekSeconds)
+        currentTrackRef.current = expected.track
         scheduleNextTrack()
       }
-    }, 15000)
+    }, 5000)
   }, [audio, clearTimers, scheduleNextTrack])
 
   const stop = useCallback(() => {
