@@ -1,6 +1,6 @@
 export function Footer() {
   return (
-    <footer className="mt-auto px-6 py-8 text-center">
+    <footer className="mt-auto px-6 pb-20 pt-8 text-center">
       <p className="text-[11px] leading-relaxed tracking-wide text-white/20">
         freelancerad.io was built by a freelance creative who needed music
         that didn't distract, interrupt, or cost another subscription.

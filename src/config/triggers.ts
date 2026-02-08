@@ -31,7 +31,7 @@ export const triggers: Trigger[] = [
       artist: 'GBM Music',
       buyUrl: 'https://gbmmusicuk.bandcamp.com/track/send-me-to-sleep-a-song-to-fall-asleep-to-extended-version',
     },
-    hasProgressRing: false,
+    hasProgressRing: true,
     hasChime: true,
   },
   {
@@ -47,7 +47,7 @@ export const triggers: Trigger[] = [
       artist: 'GBM Music',
       buyUrl: '#',
     },
-    hasProgressRing: false,
+    hasProgressRing: true,
     hasChime: true,
     comingSoon: true,
   },
@@ -64,7 +64,7 @@ export const triggers: Trigger[] = [
       artist: 'GBM Music',
       buyUrl: '#',
     },
-    hasProgressRing: false,
+    hasProgressRing: true,
     hasChime: true,
     palette: {
       colors: ['#1a0a00', '#3d1500', '#6b2000', '#4a1200', '#2d0800'],
