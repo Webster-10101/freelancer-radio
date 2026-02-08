@@ -2,11 +2,14 @@ import type { ReactNode } from 'react'
 import { useAnimation } from '../../hooks/useAnimation'
 import { useAppContext } from '../../state/AppContext'
 import { channels } from '../../config/channels'
+import { triggers } from '../../config/triggers'
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { activeChannelId } = useAppContext()
+  const { activeChannelId, activeTriggerId } = useAppContext()
   const channel = activeChannelId ? channels.find(c => c.id === activeChannelId) : null
-  const canvasRef = useAnimation(channel?.palette)
+  const trigger = activeTriggerId ? triggers.find(t => t.id === activeTriggerId) : null
+  const palette = channel?.palette ?? trigger?.palette
+  const canvasRef = useAnimation(palette, trigger?.speedLines ?? false)
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">

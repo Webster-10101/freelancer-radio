@@ -14,6 +14,15 @@ interface GradientBlob {
   colorIdx: number
 }
 
+interface SpeedLine {
+  x: number
+  y: number
+  length: number
+  speed: number
+  opacity: number
+  width: number
+}
+
 const DEFAULT_PALETTE: Palette = {
   colors: ['#0f1628', '#1a1040', '#252060', '#1b3050', '#0d2040'],
   speed: 0.4,
@@ -48,6 +57,8 @@ export class AnimationEngine {
   private blobs: GradientBlob[] = []
   private prefersReducedMotion = false
   private reducedMotionQuery: MediaQueryList | null = null
+  private _speedLines = false
+  private speedLinePool: SpeedLine[] = []
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -95,6 +106,13 @@ export class AnimationEngine {
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId)
       this.animationId = null
+    }
+  }
+
+  setSpeedLines(enabled: boolean): void {
+    this._speedLines = enabled
+    if (!enabled) {
+      this.speedLinePool = []
     }
   }
 
@@ -178,8 +196,60 @@ export class AnimationEngine {
       this.ctx.fillRect(0, 0, w, h)
     }
 
+    // Speed lines overlay (sprint mode)
+    if (this._speedLines) {
+      this.ctx.globalCompositeOperation = 'source-over'
+      this.renderSpeedLines(w, h)
+    }
+
     // Reset composite
     this.ctx.globalCompositeOperation = 'source-over'
+  }
+
+  private renderSpeedLines(w: number, h: number): void {
+    // Spawn new lines
+    while (this.speedLinePool.length < 18) {
+      this.speedLinePool.push({
+        x: w + Math.random() * w * 0.3,
+        y: Math.random() * h,
+        length: 60 + Math.random() * 180,
+        speed: 3 + Math.random() * 5,
+        opacity: 0.03 + Math.random() * 0.08,
+        width: 1 + Math.random() * 2,
+      })
+    }
+
+    // Update and draw
+    for (let i = this.speedLinePool.length - 1; i >= 0; i--) {
+      const line = this.speedLinePool[i]
+      line.x -= line.speed
+
+      // Remove offscreen lines
+      if (line.x + line.length < 0) {
+        this.speedLinePool[i] = {
+          x: w + Math.random() * 100,
+          y: Math.random() * h,
+          length: 60 + Math.random() * 180,
+          speed: 3 + Math.random() * 5,
+          opacity: 0.03 + Math.random() * 0.08,
+          width: 1 + Math.random() * 2,
+        }
+        continue
+      }
+
+      // Draw streak with gradient fade
+      const gradient = this.ctx.createLinearGradient(line.x, 0, line.x + line.length, 0)
+      gradient.addColorStop(0, `rgba(255, 160, 80, ${line.opacity})`)
+      gradient.addColorStop(0.6, `rgba(255, 200, 140, ${line.opacity * 0.7})`)
+      gradient.addColorStop(1, `rgba(255, 160, 80, 0)`)
+
+      this.ctx.strokeStyle = gradient
+      this.ctx.lineWidth = line.width
+      this.ctx.beginPath()
+      this.ctx.moveTo(line.x, line.y)
+      this.ctx.lineTo(line.x + line.length, line.y)
+      this.ctx.stroke()
+    }
   }
 
   destroy(): void {

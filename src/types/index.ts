@@ -30,6 +30,8 @@ export interface Trigger {
   hasProgressRing: boolean
   hasChime: boolean
   comingSoon?: boolean
+  palette?: ChannelPalette
+  speedLines?: boolean
 }
 
 export type PlayMode = 'idle' | 'channel' | 'trigger'

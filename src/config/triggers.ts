@@ -58,15 +58,19 @@ export const triggers: Trigger[] = [
     duration: 30 * 60,
     track: {
       id: 'trigger-sprint',
-      url: getTrackUrl('triggers/sprint.mp3'),
-      duration: 30 * 60,
-      title: 'Sprint',
+      url: getTrackUrl('triggers/GBM Music - Reason To Run.mp3'),
+      duration: 1998,
+      title: 'Reason To Run',
       artist: 'GBM Music',
       buyUrl: '#',
     },
     hasProgressRing: false,
     hasChime: true,
-    comingSoon: true,
+    palette: {
+      colors: ['#1a0a00', '#3d1500', '#6b2000', '#4a1200', '#2d0800'],
+      speed: 1.2,
+    },
+    speedLines: true,
   },
 ]
 

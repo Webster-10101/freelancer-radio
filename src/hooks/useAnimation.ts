@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimationEngine, type Palette } from '../engine/AnimationEngine'
 
-export function useAnimation(palette?: Palette) {
+export function useAnimation(palette?: Palette, speedLines = false) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<AnimationEngine | null>(null)
 
@@ -30,6 +30,12 @@ export function useAnimation(palette?: Palette) {
       engineRef.current.setPalette(palette)
     }
   }, [palette])
+
+  useEffect(() => {
+    if (engineRef.current) {
+      engineRef.current.setSpeedLines(speedLines)
+    }
+  }, [speedLines])
 
   return canvasRef
 }
