@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="wave-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="text-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <radialGradient id="glow-cyan" cx="25%" cy="40%" r="40%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-violet" cx="55%" cy="50%" r="35%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-amber" cx="80%" cy="60%" r="30%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0a0a0f"/>
+
+  <!-- Subtle ambient glows -->
+  <rect width="1200" height="630" fill="url(#glow-cyan)"/>
+  <rect width="1200" height="630" fill="url(#glow-violet)"/>
+  <rect width="1200" height="630" fill="url(#glow-amber)"/>
+
+  <!-- Wave arcs (scaled up from favicon) -->
+  <g transform="translate(600, 260)" fill="none" stroke="url(#wave-grad)" stroke-linecap="round">
+    <path d="M-180 0 Q0 -130, 180 0" stroke-width="3" opacity="0.3"/>
+    <path d="M-140 0 Q0 -100, 140 0" stroke-width="3.5" opacity="0.5"/>
+    <path d="M-100 0 Q0 -70, 100 0" stroke-width="4" opacity="0.7"/>
+    <path d="M-60 0 Q0 -40, 60 0" stroke-width="4.5" opacity="0.9"/>
+    <circle cx="0" cy="30" r="8" fill="url(#wave-grad)" stroke="none"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="400" text-anchor="middle" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="56" font-weight="600" fill="url(#text-grad)">freelancerad.io</text>
+
+  <!-- Tagline -->
+  <text x="600" y="450" text-anchor="middle" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="22" font-weight="300" fill="rgba(255,255,255,0.5)">The sound of serious freelance work.</text>
+</svg>
