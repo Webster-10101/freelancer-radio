@@ -15,6 +15,7 @@ export function useChannelPreload() {
     const pos = simulator.getPositionAtTime()
 
     const audio = new Audio()
+    audio.crossOrigin = 'anonymous'
     audio.preload = 'auto'
     audio.src = pos.track.url
 
