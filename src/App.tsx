@@ -14,6 +14,7 @@ import { useWakeLock } from './hooks/useWakeLock'
 import { useChannelPreload } from './hooks/useChannelPreload'
 import type { Channel, Trigger } from './types'
 import { getTrigger } from './config/triggers'
+import { track } from '@vercel/analytics'
 
 function AppInner() {
   const [activeTab, setActiveTab] = useState<'channels' | 'triggers'>('channels')
@@ -34,6 +35,7 @@ function AppInner() {
     triggerAudio.pause()
     wakeLock.release()
 
+    track('channel_play', { channel: channel.id })
     setChannel(channel.id)
     await radio.tuneIn(channel)
   }, [radio, timer, triggerAudio, setChannel, wakeLock])
@@ -41,6 +43,7 @@ function AppInner() {
   const handlePlayTrigger = useCallback(async (trigger: Trigger) => {
     radio.stop()
 
+    track('trigger_start', { trigger: trigger.id, duration_min: Math.round(trigger.duration / 60) })
     setTrigger(trigger.id)
     setCurrentTrack(trigger.track)
     await triggerAudio.play(trigger.track.url)
@@ -49,11 +52,16 @@ function AppInner() {
   }, [radio, triggerAudio, timer, setTrigger, setCurrentTrack, wakeLock])
 
   const handleStopTrigger = useCallback(() => {
+    if (activeTriggerId) {
+      const trigger = getTrigger(activeTriggerId)
+      const elapsedPct = Math.round((1 - timer.remainingMs / (trigger.duration * 1000)) * 100)
+      track('trigger_cancel', { trigger: activeTriggerId, elapsed_pct: elapsedPct })
+    }
     timer.reset()
     triggerAudio.pause()
     wakeLock.release()
     stopAll()
-  }, [timer, triggerAudio, stopAll, wakeLock])
+  }, [timer, triggerAudio, stopAll, wakeLock, activeTriggerId])
 
   const handlePause = useCallback(() => {
     radio.pause()
@@ -75,6 +83,7 @@ function AppInner() {
   // Play chime when timer completes (if trigger has chime enabled)
   useEffect(() => {
     if (timer.state === 'complete' && activeTriggerId) {
+      track('trigger_complete', { trigger: activeTriggerId })
       const trigger = getTrigger(activeTriggerId)
       if (trigger.hasChime) {
         // Create chime audio element if not exists

@@ -3,6 +3,7 @@ import { getChannel } from '../../config/channels'
 import { ChannelSelect } from './ChannelSelect'
 import { VolumeSlider } from '../player/VolumeSlider'
 import type { Channel } from '../../types'
+import { track } from '@vercel/analytics'
 
 const CHANNEL_GLOW = {
   calm: { shadow: 'rgba(44, 83, 100, 0.4)', soft: 'rgba(44, 83, 100, 0.12)' },
@@ -46,6 +47,9 @@ export function ChannelPanel({
   }
 
   const handleChannelChange = (id: Channel['id']) => {
+    if (mode === 'channel') {
+      track('channel_switch', { from: selectedChannelId, to: id })
+    }
     setSelectedChannel(id)
     if (mode === 'channel') {
       onPlay(getChannel(id))
