@@ -10,6 +10,7 @@ export function useRadio() {
   const driftIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const currentTrackRef = useRef<Track | null>(null)
   const isActiveRef = useRef(false)
+  const isPausedRef = useRef(false)
 
   const clearTimers = useCallback(() => {
     if (nextTrackTimeoutRef.current) {
@@ -48,7 +49,7 @@ export function useRadio() {
 
   // Re-sync playback when tab becomes visible (fixes background throttling)
   const resyncPlayback = useCallback(() => {
-    if (!simulatorRef.current || !isActiveRef.current) return
+    if (!simulatorRef.current || !isActiveRef.current || isPausedRef.current) return
 
     const expected = simulatorRef.current.getPositionAtTime()
     const actual = audio.getCurrentTime()
@@ -69,6 +70,7 @@ export function useRadio() {
     const simulator = new RadioSimulator(channel)
     simulatorRef.current = simulator
     isActiveRef.current = true
+    isPausedRef.current = false
 
     const pos = simulator.getPositionAtTime()
     currentTrackRef.current = pos.track
@@ -78,26 +80,46 @@ export function useRadio() {
     // Use audio ended event as fallback for background tab advancement
     // This fires reliably even when setTimeout is throttled
     audio.onTrackEnd(() => {
-      if (!simulatorRef.current || !isActiveRef.current) return
+      if (!simulatorRef.current || !isActiveRef.current || isPausedRef.current) return
       const newPos = simulatorRef.current.getPositionAtTime()
-      audio.crossfadeTo(newPos.track.url, newPos.seekSeconds)
+      // In background tabs, use play() instead of crossfadeTo() — rAF-based
+      // crossfade can leave volume at 0 since rAF doesn't fire in background
+      if (document.visibilityState === 'hidden') {
+        audio.play(newPos.track.url, newPos.seekSeconds)
+      } else {
+        audio.crossfadeTo(newPos.track.url, newPos.seekSeconds)
+      }
       currentTrackRef.current = newPos.track
       scheduleNextTrack()
     })
 
     // Drift correction every 5s — catches background throttling faster
     driftIntervalRef.current = setInterval(() => {
-      if (!simulatorRef.current) return
+      if (!simulatorRef.current || isPausedRef.current) return
       const expected = simulatorRef.current.getPositionAtTime()
       const actual = audio.getCurrentTime()
       const drift = Math.abs(expected.seekSeconds - actual)
       if (currentTrackRef.current?.id !== expected.track.id || drift > 1) {
-        audio.crossfadeTo(expected.track.url, expected.seekSeconds)
+        if (document.visibilityState === 'hidden') {
+          audio.play(expected.track.url, expected.seekSeconds)
+        } else {
+          audio.crossfadeTo(expected.track.url, expected.seekSeconds)
+        }
         currentTrackRef.current = expected.track
         scheduleNextTrack()
       }
     }, 5000)
   }, [audio, clearTimers, scheduleNextTrack])
+
+  const pause = useCallback(() => {
+    isPausedRef.current = true
+    audio.pause()
+  }, [audio])
+
+  const resume = useCallback(() => {
+    isPausedRef.current = false
+    audio.resume()
+  }, [audio])
 
   const stop = useCallback(() => {
     clearTimers()
@@ -105,6 +127,7 @@ export function useRadio() {
     simulatorRef.current = null
     currentTrackRef.current = null
     isActiveRef.current = false
+    isPausedRef.current = false
   }, [audio, clearTimers])
 
   useEffect(() => {
@@ -126,8 +149,8 @@ export function useRadio() {
   return {
     tuneIn,
     stop,
-    pause: audio.pause,
-    resume: audio.resume,
+    pause,
+    resume,
     setVolume: audio.setVolume,
     isPlaying: audio.isPlaying,
     isLoading: audio.isLoading,

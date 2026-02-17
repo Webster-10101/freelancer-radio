@@ -208,9 +208,8 @@ export class AudioEngine {
           outgoing.src = ''
         }
       }
-    } else if (!this.active.paused) {
-      this.active.play().catch(() => {})
     }
+    // No play() on visibility return — useRadio.resyncPlayback handles re-sync
   }
 
   private cancelCrossfade(): void {
