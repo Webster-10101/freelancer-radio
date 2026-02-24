@@ -59,6 +59,8 @@ export class AnimationEngine {
   private reducedMotionQuery: MediaQueryList | null = null
   private _speedLines = false
   private speedLinePool: SpeedLine[] = []
+  private _breatheOverlay = false
+  private _breatheStartTime: number | null = null
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -113,6 +115,15 @@ export class AnimationEngine {
     this._speedLines = enabled
     if (!enabled) {
       this.speedLinePool = []
+    }
+  }
+
+  setBreatheOverlay(enabled: boolean): void {
+    this._breatheOverlay = enabled
+    if (enabled) {
+      this._breatheStartTime = performance.now()
+    } else {
+      this._breatheStartTime = null
     }
   }
 
@@ -202,6 +213,12 @@ export class AnimationEngine {
       this.renderSpeedLines(w, h)
     }
 
+    // Breathe overlay (breathing ripples)
+    if (this._breatheOverlay) {
+      this.ctx.globalCompositeOperation = 'source-over'
+      this.renderBreatheOverlay(w, h, timestamp)
+    }
+
     // Reset composite
     this.ctx.globalCompositeOperation = 'source-over'
   }
@@ -250,6 +267,104 @@ export class AnimationEngine {
       this.ctx.lineTo(line.x + line.length, line.y)
       this.ctx.stroke()
     }
+  }
+
+  /**
+   * Breathing ripples: concentric rings that expand on inhale, hold,
+   * contract on exhale, hold. Synced to a 4-4-4-4 box breathing cycle.
+   */
+  private renderBreatheOverlay(w: number, h: number, timestamp: number): void {
+    const CYCLE = 16 // 4+4+4+4 seconds
+    const elapsed = this._breatheStartTime
+      ? (timestamp - this._breatheStartTime) / 1000
+      : 0
+    const cyclePos = elapsed % CYCLE
+
+    // Calculate breath progress (0 = fully contracted, 1 = fully expanded)
+    let breathProgress: number
+    if (cyclePos < 4) {
+      // Inhale: expand 0→1
+      const t = cyclePos / 4
+      breathProgress = t * t * (3 - 2 * t) // smoothstep
+    } else if (cyclePos < 8) {
+      // Hold in: stay expanded
+      breathProgress = 1
+    } else if (cyclePos < 12) {
+      // Exhale: contract 1→0
+      const t = (cyclePos - 8) / 4
+      breathProgress = 1 - t * t * (3 - 2 * t)
+    } else {
+      // Hold out: stay contracted
+      breathProgress = 0
+    }
+
+    const cx = w / 2
+    const cy = h * 0.42 // slightly above centre
+    const minSize = Math.min(w, h)
+    const minRadius = minSize * 0.06
+    const maxRadius = minSize * 0.28
+
+    // Draw 4 concentric ripple rings, each slightly delayed
+    const ringCount = 4
+    for (let i = 0; i < ringCount; i++) {
+      const ringDelay = i * 0.08 // subtle stagger between rings
+      const ringBreath = Math.max(0, Math.min(1, breathProgress - ringDelay + ringDelay * breathProgress))
+
+      const radius = minRadius + (maxRadius - minRadius) * ringBreath * (1 - i * 0.15)
+
+      // Outer rings are fainter
+      const baseOpacity = 0.12 - i * 0.025
+      // Rings are brighter when expanded (at hold-in)
+      const opacity = baseOpacity * (0.5 + 0.5 * ringBreath)
+
+      // Soft radial glow for each ring
+      const gradient = this.ctx.createRadialGradient(cx, cy, radius * 0.85, cx, cy, radius * 1.15)
+      gradient.addColorStop(0, `rgba(120, 220, 210, 0)`)
+      gradient.addColorStop(0.4, `rgba(120, 220, 210, ${opacity})`)
+      gradient.addColorStop(0.6, `rgba(120, 220, 210, ${opacity * 0.8})`)
+      gradient.addColorStop(1, `rgba(120, 220, 210, 0)`)
+
+      this.ctx.beginPath()
+      this.ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+      this.ctx.strokeStyle = `rgba(140, 230, 220, ${opacity * 0.6})`
+      this.ctx.lineWidth = 1.5 + (1 - i / ringCount) * 1.5
+      this.ctx.stroke()
+
+      // Fill with very subtle glow on innermost ring only
+      if (i === 0) {
+        const innerGlow = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, radius)
+        innerGlow.addColorStop(0, `rgba(120, 220, 210, ${opacity * 0.4})`)
+        innerGlow.addColorStop(0.7, `rgba(120, 220, 210, ${opacity * 0.1})`)
+        innerGlow.addColorStop(1, `rgba(120, 220, 210, 0)`)
+        this.ctx.fillStyle = innerGlow
+        this.ctx.fill()
+      }
+    }
+
+    // Central soft dot — the "breath point"
+    const dotRadius = 3 + breathProgress * 4
+    const dotOpacity = 0.3 + breathProgress * 0.4
+    const dotGradient = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, dotRadius * 3)
+    dotGradient.addColorStop(0, `rgba(180, 240, 235, ${dotOpacity})`)
+    dotGradient.addColorStop(0.5, `rgba(140, 220, 215, ${dotOpacity * 0.3})`)
+    dotGradient.addColorStop(1, `rgba(120, 200, 195, 0)`)
+    this.ctx.beginPath()
+    this.ctx.arc(cx, cy, dotRadius * 3, 0, Math.PI * 2)
+    this.ctx.fillStyle = dotGradient
+    this.ctx.fill()
+  }
+
+  /** Returns the current breathe phase label, or null if not active. */
+  getBreathePhase(): { label: string; progress: number } | null {
+    if (!this._breatheOverlay || !this._breatheStartTime) return null
+
+    const elapsed = (performance.now() - this._breatheStartTime) / 1000
+    const cyclePos = elapsed % 16
+
+    if (cyclePos < 4) return { label: 'Breathe in', progress: cyclePos / 4 }
+    if (cyclePos < 8) return { label: 'Hold', progress: (cyclePos - 4) / 4 }
+    if (cyclePos < 12) return { label: 'Breathe out', progress: (cyclePos - 8) / 4 }
+    return { label: 'Hold', progress: (cyclePos - 12) / 4 }
   }
 
   destroy(): void {

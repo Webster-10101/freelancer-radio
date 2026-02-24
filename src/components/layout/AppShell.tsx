@@ -9,7 +9,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const channel = activeChannelId ? channels.find(c => c.id === activeChannelId) : null
   const trigger = activeTriggerId ? triggers.find(t => t.id === activeTriggerId) : null
   const palette = channel?.palette ?? trigger?.palette
-  const canvasRef = useAnimation(palette, trigger?.speedLines ?? false)
+  const { canvasRef } = useAnimation(palette, trigger?.speedLines ?? false)
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">

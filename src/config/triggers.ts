@@ -49,7 +49,11 @@ export const triggers: Trigger[] = [
     },
     hasProgressRing: true,
     hasChime: true,
-    comingSoon: true,
+    palette: {
+      colors: ['#021a1a', '#0a2e2e', '#0d3d3d', '#082828', '#041e1e'],
+      speed: 0.3,
+    },
+    breatheOverlay: true,
   },
   {
     id: 'sprint',

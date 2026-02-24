@@ -37,5 +37,5 @@ export function useAnimation(palette?: Palette, speedLines = false) {
     }
   }, [speedLines])
 
-  return canvasRef
+  return { canvasRef }
 }

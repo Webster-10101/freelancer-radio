@@ -1,6 +1,8 @@
 import type { Trigger } from '../../types'
 import { triggers } from '../../config/triggers'
+import { useAppContext } from '../../state/AppContext'
 import { TriggerCard } from './TriggerCard'
+import { BreatheView } from './BreatheView'
 
 interface TriggerPanelProps {
   onPlay: (trigger: Trigger) => void
@@ -17,6 +19,19 @@ export function TriggerPanel({
   timerRemainingMs,
   timerState,
 }: TriggerPanelProps) {
+  const { activeTriggerId } = useAppContext()
+
+  // When Breathe is active, show dedicated breathing view
+  if (activeTriggerId === 'breathe') {
+    return (
+      <BreatheView
+        onStop={onStop}
+        timerRemainingMs={timerRemainingMs}
+        timerProgress={timerProgress}
+      />
+    )
+  }
+
   return (
     <div className="mx-auto w-full max-w-xl space-y-3 px-6">
       <p className="mb-6 text-center text-[13px] font-light tracking-[0.04em] text-white/25">

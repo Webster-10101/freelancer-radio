@@ -32,6 +32,7 @@ export interface Trigger {
   comingSoon?: boolean
   palette?: ChannelPalette
   speedLines?: boolean
+  breatheOverlay?: boolean
 }
 
 export type PlayMode = 'idle' | 'channel' | 'trigger'
