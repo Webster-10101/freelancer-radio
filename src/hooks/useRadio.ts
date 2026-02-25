@@ -34,12 +34,13 @@ export function useRadio() {
     // (background tabs can't reliably load new audio sources)
     audio.preload(pos.nextTrack.url)
 
-    // Schedule crossfade to next track
+    // Schedule clean transition to next track (brief fade-out, then clean start —
+    // no overlap, so idents and track intros are heard in full)
     if (nextTrackTimeoutRef.current) clearTimeout(nextTrackTimeoutRef.current)
     nextTrackTimeoutRef.current = setTimeout(() => {
       const newPos = simulatorRef.current?.getPositionAtTime()
       if (!newPos) return
-      audio.crossfadeTo(newPos.track.url, newPos.seekSeconds)
+      audio.transitionTo(newPos.track.url, newPos.seekSeconds)
       currentTrackRef.current = newPos.track
       scheduleNextTrack()
     }, pos.secondsUntilNextTrack * 1000)
@@ -90,7 +91,7 @@ export function useRadio() {
           audio.play(newPos.track.url, newPos.seekSeconds)
         }
       } else {
-        audio.crossfadeTo(newPos.track.url, newPos.seekSeconds)
+        audio.transitionTo(newPos.track.url, newPos.seekSeconds)
       }
       currentTrackRef.current = newPos.track
       scheduleNextTrack()
@@ -110,7 +111,7 @@ export function useRadio() {
             audio.play(expected.track.url, expected.seekSeconds)
           }
         } else {
-          audio.crossfadeTo(expected.track.url, expected.seekSeconds)
+          audio.transitionTo(expected.track.url, expected.seekSeconds)
         }
         currentTrackRef.current = expected.track
         scheduleNextTrack()

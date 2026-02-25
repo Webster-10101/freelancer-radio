@@ -19,6 +19,7 @@ interface ChannelPanelProps {
   isLoading: boolean
   volume: number
   onVolumeChange: (v: number) => void
+  listenerCount: number | null
 }
 
 export function ChannelPanel({
@@ -29,6 +30,7 @@ export function ChannelPanel({
   isLoading,
   volume,
   onVolumeChange,
+  listenerCount,
 }: ChannelPanelProps) {
   const { mode, selectedChannelId, setSelectedChannel } = useAppContext()
   const selectedChannel = getChannel(selectedChannelId)
@@ -122,6 +124,14 @@ export function ChannelPanel({
       <p className="mt-3 text-[13px] font-light tracking-wide text-white/25">
         {selectedChannel.description}
       </p>
+
+      {/* Listener count */}
+      {listenerCount !== null && listenerCount > 0 && (
+        <p className="mt-3 text-[12px] font-light tracking-wide text-white/20">
+          <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400/60" />
+          {listenerCount} {listenerCount === 1 ? 'freelancer' : 'freelancers'} listening now
+        </p>
+      )}
 
       {/* Volume slider — fades in when playing */}
       <div

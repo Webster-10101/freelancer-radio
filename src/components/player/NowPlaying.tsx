@@ -28,7 +28,7 @@ export function NowPlaying({
     : activeTriggerId?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 border-t border-white/[0.04] bg-black/70 backdrop-blur-2xl">
+    <div className="fixed inset-x-0 bottom-0 z-20 border-t border-white/[0.04] bg-black/70 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl">
       <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-white/70">{label}</p>

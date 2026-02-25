@@ -12,13 +12,15 @@ import { useAudio } from './hooks/useAudio'
 import { useTimer } from './hooks/useTimer'
 import { useWakeLock } from './hooks/useWakeLock'
 import { useChannelPreload } from './hooks/useChannelPreload'
+import { useMediaSession } from './hooks/useMediaSession'
+import { useListenerCount } from './hooks/useListenerCount'
 import type { Channel, Trigger } from './types'
 import { getTrigger } from './config/triggers'
 import { track } from '@vercel/analytics'
 
 function AppInner() {
   const [activeTab, setActiveTab] = useState<'channels' | 'triggers'>('channels')
-  const { setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId } = useAppContext()
+  const { setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId, activeChannelId, currentTrack } = useAppContext()
   const chimeRef = useRef<HTMLAudioElement | null>(null)
   const radio = useRadio()
   const triggerAudio = useAudio()
@@ -29,6 +31,18 @@ function AppInner() {
   useChannelPreload()
 
   const isPlaying = radio.isPlaying || triggerAudio.isPlaying
+
+  // Sync radio's current track into app context (for MediaSession + NowPlaying)
+  useEffect(() => {
+    if (!radio.isPlaying) return
+    const syncTrack = () => {
+      const track = radio.getCurrentTrack()
+      if (track) setCurrentTrack(track)
+    }
+    syncTrack()
+    const id = setInterval(syncTrack, 2000)
+    return () => clearInterval(id)
+  }, [radio.isPlaying, radio, setCurrentTrack])
 
   const handlePlayChannel = useCallback(async (channel: Channel) => {
     timer.reset()
@@ -80,6 +94,21 @@ function AppInner() {
     triggerAudio.setVolume(v)
   }, [radio, triggerAudio])
 
+  // Listener presence counter
+  const listenerCount = useListenerCount(isPlaying)
+
+  // MediaSession API — lock screen controls + tells browser this is an active audio app
+  const channelName = activeChannelId
+    ? activeChannelId.charAt(0).toUpperCase() + activeChannelId.slice(1)
+    : null
+  useMediaSession({
+    track: currentTrack,
+    channelName,
+    isPlaying,
+    onPause: handlePause,
+    onResume: handleResume,
+  })
+
   // Play chime when timer completes (if trigger has chime enabled)
   useEffect(() => {
     if (timer.state === 'complete' && activeTriggerId) {
@@ -111,6 +140,7 @@ function AppInner() {
             isLoading={radio.isLoading}
             volume={radio.volume}
             onVolumeChange={handleVolumeChange}
+            listenerCount={listenerCount}
           />
         ) : (
           <TriggerPanel

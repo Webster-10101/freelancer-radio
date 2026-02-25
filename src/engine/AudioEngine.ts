@@ -148,6 +148,62 @@ export class AudioEngine {
     this.crossfadeId = requestAnimationFrame(animate)
   }
 
+  /**
+   * Radio-style transition: brief fade-out on outgoing, then clean start on incoming.
+   * No overlap — preserves the full beginning of every track (especially short idents).
+   * Used for automatic track-to-track transitions. crossfadeTo is kept for user-initiated
+   * channel switches where an overlap sounds smoother.
+   */
+  async transitionTo(url: string, seekTo = 0, fadeOutMs = 300): Promise<void> {
+    const outgoing = this.active
+    const incoming = this.inactive
+
+    this.preloadedUrl = null
+    incoming.src = url
+    incoming.currentTime = seekTo
+    incoming.volume = this._volume
+    incoming.onended = () => this.onTrackEndCallback?.()
+
+    // Quick fade-out on outgoing (or instant if in background)
+    outgoing.onended = null
+    if (document.visibilityState === 'hidden' || fadeOutMs <= 0) {
+      outgoing.pause()
+      outgoing.src = ''
+    } else {
+      const startVol = outgoing.volume
+      const startTime = performance.now()
+      await new Promise<void>(resolve => {
+        const fade = (now: number) => {
+          const progress = Math.min((now - startTime) / fadeOutMs, 1)
+          outgoing.volume = startVol * (1 - progress)
+          if (progress < 1) {
+            requestAnimationFrame(fade)
+          } else {
+            outgoing.pause()
+            outgoing.src = ''
+            resolve()
+          }
+        }
+        requestAnimationFrame(fade)
+      })
+    }
+
+    // Start incoming at full volume — clean start
+    this.activeSlot = this.activeSlot === 'A' ? 'B' : 'A'
+    this.cancelCrossfade()
+
+    try {
+      await incoming.play()
+    } catch (e) {
+      console.warn('transitionTo play failed, retrying:', e)
+      try {
+        await incoming.play()
+      } catch (e2) {
+        console.warn('transitionTo retry also failed:', e2)
+      }
+    }
+  }
+
   preload(url: string): void {
     this.inactive.src = url
     this.inactive.preload = 'auto'

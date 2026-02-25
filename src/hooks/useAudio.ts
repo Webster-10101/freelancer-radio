@@ -39,6 +39,11 @@ export function useAudio() {
     setIsPlaying(true)
   }, [])
 
+  const transitionTo = useCallback(async (url: string, seekTo = 0) => {
+    await engineRef.current?.transitionTo(url, seekTo)
+    setIsPlaying(true)
+  }, [])
+
   const preload = useCallback((url: string) => {
     engineRef.current?.preload(url)
   }, [])
@@ -78,6 +83,7 @@ export function useAudio() {
   return {
     play,
     crossfadeTo,
+    transitionTo,
     preload,
     switchToPreloaded,
     isPreloaded,
