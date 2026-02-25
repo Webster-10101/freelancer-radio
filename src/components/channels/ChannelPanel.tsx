@@ -126,7 +126,7 @@ export function ChannelPanel({
       </p>
 
       {/* Listener count */}
-      {listenerCount !== null && listenerCount > 0 && (
+      {listenerCount !== null && listenerCount >= 2 && (
         <p className="mt-3 text-[12px] font-light tracking-wide text-white/20">
           <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400/60" />
           {listenerCount} {listenerCount === 1 ? 'freelancer' : 'freelancers'} listening now
