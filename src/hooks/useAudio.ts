@@ -43,6 +43,15 @@ export function useAudio() {
     engineRef.current?.preload(url)
   }, [])
 
+  const switchToPreloaded = useCallback(async (seekTo = 0) => {
+    await engineRef.current?.switchToPreloaded(seekTo)
+    setIsPlaying(true)
+  }, [])
+
+  const isPreloaded = useCallback((url: string) => {
+    return engineRef.current?.isPreloaded(url) ?? false
+  }, [])
+
   const pause = useCallback(() => {
     engineRef.current?.pause()
     setIsPlaying(false)
@@ -70,6 +79,8 @@ export function useAudio() {
     play,
     crossfadeTo,
     preload,
+    switchToPreloaded,
+    isPreloaded,
     pause,
     resume,
     warmUp,

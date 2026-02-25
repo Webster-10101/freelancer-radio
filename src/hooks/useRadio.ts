@@ -30,11 +30,9 @@ export function useRadio() {
     const pos = simulator.getPositionAtTime()
     currentTrackRef.current = pos.track
 
-    // Preload next track 5 seconds before boundary
-    const preloadIn = Math.max(0, (pos.secondsUntilNextTrack - 5) * 1000)
-    setTimeout(() => {
-      audio.preload(pos.nextTrack.url)
-    }, preloadIn)
+    // Preload next track immediately so it's ready for background tab transitions
+    // (background tabs can't reliably load new audio sources)
+    audio.preload(pos.nextTrack.url)
 
     // Schedule crossfade to next track
     if (nextTrackTimeoutRef.current) clearTimeout(nextTrackTimeoutRef.current)
@@ -82,10 +80,15 @@ export function useRadio() {
     audio.onTrackEnd(() => {
       if (!simulatorRef.current || !isActiveRef.current || isPausedRef.current) return
       const newPos = simulatorRef.current.getPositionAtTime()
-      // In background tabs, use play() instead of crossfadeTo() — rAF-based
-      // crossfade can leave volume at 0 since rAF doesn't fire in background
       if (document.visibilityState === 'hidden') {
-        audio.play(newPos.track.url, newPos.seekSeconds)
+        // Background: use preloaded player if available (no network request needed).
+        // This is critical — Chrome throttles/blocks new audio source loading in
+        // background tabs, which causes play() to fail silently.
+        if (audio.isPreloaded(newPos.track.url)) {
+          audio.switchToPreloaded(newPos.seekSeconds)
+        } else {
+          audio.play(newPos.track.url, newPos.seekSeconds)
+        }
       } else {
         audio.crossfadeTo(newPos.track.url, newPos.seekSeconds)
       }
@@ -101,7 +104,11 @@ export function useRadio() {
       const drift = Math.abs(expected.seekSeconds - actual)
       if (currentTrackRef.current?.id !== expected.track.id || drift > 1) {
         if (document.visibilityState === 'hidden') {
-          audio.play(expected.track.url, expected.seekSeconds)
+          if (audio.isPreloaded(expected.track.url)) {
+            audio.switchToPreloaded(expected.seekSeconds)
+          } else {
+            audio.play(expected.track.url, expected.seekSeconds)
+          }
         } else {
           audio.crossfadeTo(expected.track.url, expected.seekSeconds)
         }

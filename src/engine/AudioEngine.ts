@@ -8,6 +8,7 @@ export class AudioEngine {
   private crossfadeId: number | null = null
   private onTrackEndCallback: (() => void) | null = null
   private warmedUp = false
+  private preloadedUrl: string | null = null
 
   constructor() {
     this.playerA = new Audio()
@@ -46,6 +47,7 @@ export class AudioEngine {
 
   async play(url: string, seekTo = 0, fadeInMs = 800): Promise<void> {
     this.cancelCrossfade()
+    this.preloadedUrl = null // Playing a new track invalidates any preload
     const player = this.active
     player.src = url
     player.volume = 0
@@ -55,8 +57,14 @@ export class AudioEngine {
     try {
       await player.play()
     } catch (e) {
-      console.warn('Audio play failed:', e)
-      return
+      console.warn('Audio play failed, retrying:', e)
+      // Retry once — background tabs can reject the first attempt
+      try {
+        await player.play()
+      } catch (e2) {
+        console.warn('Audio play retry also failed:', e2)
+        return
+      }
     }
 
     // Background tab: skip fade, set volume immediately
@@ -89,6 +97,7 @@ export class AudioEngine {
     const outgoing = this.active
     const incoming = this.inactive
 
+    this.preloadedUrl = null // Crossfade uses the inactive player, invalidating any preload
     incoming.src = url
     incoming.currentTime = seekTo
     incoming.volume = 0
@@ -142,6 +151,50 @@ export class AudioEngine {
   preload(url: string): void {
     this.inactive.src = url
     this.inactive.preload = 'auto'
+    this.inactive.load() // Force browser to start loading, even in background tabs
+    this.preloadedUrl = url
+  }
+
+  /**
+   * Switch to the preloaded inactive player — no network request needed.
+   * Used for background tab transitions where loading a new source is unreliable.
+   */
+  async switchToPreloaded(seekTo = 0): Promise<void> {
+    const outgoing = this.active
+    const incoming = this.inactive
+
+    if (!this.preloadedUrl || !incoming.src) {
+      // Nothing preloaded — fall back to regular play behaviour
+      return
+    }
+
+    incoming.currentTime = seekTo
+    incoming.volume = this._volume
+    incoming.onended = () => this.onTrackEndCallback?.()
+
+    outgoing.onended = null
+    outgoing.pause()
+    outgoing.src = ''
+
+    this.activeSlot = this.activeSlot === 'A' ? 'B' : 'A'
+    this.cancelCrossfade()
+    this.preloadedUrl = null
+
+    try {
+      await incoming.play()
+    } catch (e) {
+      console.warn('switchToPreloaded play failed, retrying:', e)
+      // Single retry — the audio data is already loaded so this should work
+      try {
+        await incoming.play()
+      } catch (e2) {
+        console.warn('switchToPreloaded retry also failed:', e2)
+      }
+    }
+  }
+
+  isPreloaded(url: string): boolean {
+    return this.preloadedUrl === url
   }
 
   pause(): void {
