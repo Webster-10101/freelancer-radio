@@ -10,18 +10,7 @@ export function useAudio() {
   useEffect(() => {
     const engine = new AudioEngine()
     engineRef.current = engine
-
-    const handleVisibility = () => engine.handleVisibilityChange()
-    document.addEventListener('visibilitychange', handleVisibility)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility)
-      engine.destroy()
-    }
-  }, [])
-
-  const warmUp = useCallback(async () => {
-    await engineRef.current?.warmUp()
+    return () => engine.destroy()
   }, [])
 
   const play = useCallback(async (url: string, seekTo = 0) => {
@@ -30,31 +19,6 @@ export function useAudio() {
     await engineRef.current?.play(url, seekTo)
     setIsLoading(false)
     setIsPlaying(true)
-  }, [])
-
-  const crossfadeTo = useCallback(async (url: string, seekTo = 0, durationMs = 2000) => {
-    setIsLoading(true)
-    await engineRef.current?.crossfadeTo(url, seekTo, durationMs)
-    setIsLoading(false)
-    setIsPlaying(true)
-  }, [])
-
-  const transitionTo = useCallback(async (url: string, seekTo = 0) => {
-    await engineRef.current?.transitionTo(url, seekTo)
-    setIsPlaying(true)
-  }, [])
-
-  const preload = useCallback((url: string) => {
-    engineRef.current?.preload(url)
-  }, [])
-
-  const switchToPreloaded = useCallback(async (seekTo = 0) => {
-    await engineRef.current?.switchToPreloaded(seekTo)
-    setIsPlaying(true)
-  }, [])
-
-  const isPreloaded = useCallback((url: string) => {
-    return engineRef.current?.isPreloaded(url) ?? false
   }, [])
 
   const pause = useCallback(() => {
@@ -80,19 +44,18 @@ export function useAudio() {
     return engineRef.current?.getCurrentTime() ?? 0
   }, [])
 
+  const getCurrentSrc = useCallback(() => {
+    return engineRef.current?.getCurrentSrc() ?? ''
+  }, [])
+
   return {
     play,
-    crossfadeTo,
-    transitionTo,
-    preload,
-    switchToPreloaded,
-    isPreloaded,
     pause,
     resume,
-    warmUp,
     setVolume,
     onTrackEnd,
     getCurrentTime,
+    getCurrentSrc,
     isPlaying,
     isLoading,
     volume,

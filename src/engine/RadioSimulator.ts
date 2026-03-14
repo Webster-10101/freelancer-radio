@@ -53,17 +53,44 @@ function getTodayString(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+/**
+ * Build a playlist: shuffle music tracks, then insert idents at regular intervals.
+ * One ident every IDENT_INTERVAL music tracks (cycling through available idents).
+ */
+const IDENT_INTERVAL = 5
+
+function buildPlaylist(channel: Channel, seed: number): Track[] {
+  const music = channel.tracks.filter(t => !t.id.includes('ident'))
+  const idents = channel.tracks.filter(t => t.id.includes('ident'))
+
+  const shuffled = seededShuffle(music, seed)
+
+  if (idents.length === 0) return shuffled
+
+  // Insert an ident after every IDENT_INTERVAL music tracks
+  const playlist: Track[] = []
+  let identIdx = 0
+  for (let i = 0; i < shuffled.length; i++) {
+    playlist.push(shuffled[i])
+    if ((i + 1) % IDENT_INTERVAL === 0) {
+      playlist.push(idents[identIdx % idents.length])
+      identIdx++
+    }
+  }
+
+  return playlist
+}
+
 export class RadioSimulator {
   private channel: Channel
-  private shuffledTracks: Track[]
-  private shuffledTotalDuration: number
+  private playlist: Track[]
+  private playlistTotalDuration: number
 
   constructor(channel: Channel) {
     this.channel = channel
-    // Shuffle based on date + channel ID (different order per channel per day)
     const seed = stringToSeed(getTodayString() + channel.id)
-    this.shuffledTracks = seededShuffle(channel.tracks, seed)
-    this.shuffledTotalDuration = this.shuffledTracks.reduce((sum, t) => sum + t.duration, 0)
+    this.playlist = buildPlaylist(channel, seed)
+    this.playlistTotalDuration = this.playlist.reduce((sum, t) => sum + t.duration, 0)
   }
 
   /**
@@ -73,8 +100,8 @@ export class RadioSimulator {
    * Track order is shuffled daily (same for all listeners on the same day).
    */
   getPositionAtTime(timestampMs: number = Date.now()): RadioPosition {
-    const tracks = this.shuffledTracks
-    const totalDuration = this.shuffledTotalDuration
+    const tracks = this.playlist
+    const totalDuration = this.playlistTotalDuration
 
     if (tracks.length === 0) {
       throw new Error(`Channel ${this.channel.id} has no tracks`)
