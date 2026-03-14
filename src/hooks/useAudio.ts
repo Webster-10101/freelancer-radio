@@ -10,12 +10,31 @@ export function useAudio() {
   useEffect(() => {
     const engine = new AudioEngine()
     engineRef.current = engine
-    return () => engine.destroy()
+
+    // Warm up audio context on first user interaction (touch/click/key).
+    // iOS requires a user gesture to unlock audio — doing it early means
+    // the play button doesn't have to wait for warmUp.
+    const earlyWarmUp = () => {
+      engine.warmUp()
+      window.removeEventListener('touchstart', earlyWarmUp)
+      window.removeEventListener('click', earlyWarmUp)
+      window.removeEventListener('keydown', earlyWarmUp)
+    }
+    window.addEventListener('touchstart', earlyWarmUp, { once: true })
+    window.addEventListener('click', earlyWarmUp, { once: true })
+    window.addEventListener('keydown', earlyWarmUp, { once: true })
+
+    return () => {
+      window.removeEventListener('touchstart', earlyWarmUp)
+      window.removeEventListener('click', earlyWarmUp)
+      window.removeEventListener('keydown', earlyWarmUp)
+      engine.destroy()
+    }
   }, [])
 
   const play = useCallback(async (url: string, seekTo = 0) => {
     setIsLoading(true)
-    await engineRef.current?.warmUp()
+    await engineRef.current?.warmUp() // no-op if already warmed by early interaction
     await engineRef.current?.play(url, seekTo)
     setIsLoading(false)
     setIsPlaying(true)
