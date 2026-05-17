@@ -24,7 +24,7 @@ export class AudioEngine {
     this.warmedUp = true
   }
 
-  async play(url: string, seekTo = 0): Promise<void> {
+  async play(url: string, seekTo = 0): Promise<boolean> {
     this.player.src = url
     this.player.currentTime = seekTo
     this.player.volume = this._volume
@@ -32,13 +32,10 @@ export class AudioEngine {
 
     try {
       await this.player.play()
+      return true
     } catch (e) {
-      console.warn('Audio play failed, retrying:', e)
-      try {
-        await this.player.play()
-      } catch (e2) {
-        console.warn('Audio play retry also failed:', e2)
-      }
+      console.warn('Audio play failed:', e)
+      return false
     }
   }
 
@@ -46,9 +43,14 @@ export class AudioEngine {
     this.player.pause()
   }
 
-  resume(): void {
+  async resume(): Promise<boolean> {
     this.player.volume = this._volume
-    this.player.play().catch(() => {})
+    try {
+      await this.player.play()
+      return true
+    } catch {
+      return false
+    }
   }
 
   setVolume(v: number): void {

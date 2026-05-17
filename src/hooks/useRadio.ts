@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react'
+import { useCallback, useRef, useEffect, useMemo } from 'react'
 import { RadioSimulator } from '../engine/RadioSimulator'
 import type { Channel, Track } from '../types'
 import { useAudio } from './useAudio'
@@ -76,15 +76,20 @@ export function useRadio() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [playCurrentPosition])
 
-  return {
-    tuneIn,
-    stop,
-    pause,
-    resume,
-    setVolume: audio.setVolume,
-    isPlaying: audio.isPlaying,
-    isLoading: audio.isLoading,
-    volume: audio.volume,
-    getCurrentTrack: () => currentTrackRef.current,
-  }
+  const getCurrentTrack = useCallback(() => currentTrackRef.current, [])
+
+  return useMemo(
+    () => ({
+      tuneIn,
+      stop,
+      pause,
+      resume,
+      setVolume: audio.setVolume,
+      isPlaying: audio.isPlaying,
+      isLoading: audio.isLoading,
+      volume: audio.volume,
+      getCurrentTrack,
+    }),
+    [tuneIn, stop, pause, resume, audio.setVolume, audio.isPlaying, audio.isLoading, audio.volume, getCurrentTrack],
+  )
 }

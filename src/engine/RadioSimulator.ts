@@ -85,12 +85,21 @@ export class RadioSimulator {
   private channel: Channel
   private playlist: Track[]
   private playlistTotalDuration: number
+  private seedDate: string
 
   constructor(channel: Channel) {
     this.channel = channel
-    const seed = stringToSeed(getTodayString() + channel.id)
-    this.playlist = buildPlaylist(channel, seed)
-    this.playlistTotalDuration = this.playlist.reduce((sum, t) => sum + t.duration, 0)
+    this.seedDate = getTodayString()
+    const built = this.buildForDate(this.seedDate)
+    this.playlist = built.playlist
+    this.playlistTotalDuration = built.totalDuration
+  }
+
+  private buildForDate(date: string): { playlist: Track[]; totalDuration: number } {
+    const seed = stringToSeed(date + this.channel.id)
+    const playlist = buildPlaylist(this.channel, seed)
+    const totalDuration = playlist.reduce((sum, t) => sum + t.duration, 0)
+    return { playlist, totalDuration }
   }
 
   /**
@@ -100,6 +109,16 @@ export class RadioSimulator {
    * Track order is shuffled daily (same for all listeners on the same day).
    */
   getPositionAtTime(timestampMs: number = Date.now()): RadioPosition {
+    // Rebuild the playlist if the date has rolled over since construction,
+    // so a tab kept open past midnight stays in sync with fresh listeners.
+    const today = getTodayString()
+    if (today !== this.seedDate) {
+      this.seedDate = today
+      const built = this.buildForDate(today)
+      this.playlist = built.playlist
+      this.playlistTotalDuration = built.totalDuration
+    }
+
     const tracks = this.playlist
     const totalDuration = this.playlistTotalDuration
 

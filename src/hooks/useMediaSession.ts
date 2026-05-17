@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Track } from '../types'
 
 interface MediaSessionOptions {
@@ -45,16 +45,25 @@ export function useMediaSession({
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
   }, [isPlaying])
 
-  // Register action handlers
+  // Keep refs to the latest handlers so the registered action handlers
+  // always call the current callbacks without needing to re-register.
+  const onPauseRef = useRef(onPause)
+  const onResumeRef = useRef(onResume)
+  useEffect(() => {
+    onPauseRef.current = onPause
+    onResumeRef.current = onResume
+  })
+
+  // Register action handlers once on mount.
   useEffect(() => {
     if (!('mediaSession' in navigator)) return
 
-    navigator.mediaSession.setActionHandler('play', onResume)
-    navigator.mediaSession.setActionHandler('pause', onPause)
+    navigator.mediaSession.setActionHandler('play', () => onResumeRef.current())
+    navigator.mediaSession.setActionHandler('pause', () => onPauseRef.current())
 
     return () => {
       navigator.mediaSession.setActionHandler('play', null)
       navigator.mediaSession.setActionHandler('pause', null)
     }
-  }, [onPause, onResume])
+  }, [])
 }

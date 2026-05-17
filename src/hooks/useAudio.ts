@@ -35,9 +35,10 @@ export function useAudio() {
   const play = useCallback(async (url: string, seekTo = 0) => {
     setIsLoading(true)
     await engineRef.current?.warmUp() // no-op if already warmed by early interaction
-    await engineRef.current?.play(url, seekTo)
+    const ok = (await engineRef.current?.play(url, seekTo)) ?? false
     setIsLoading(false)
-    setIsPlaying(true)
+    setIsPlaying(ok)
+    return ok
   }, [])
 
   const pause = useCallback(() => {
@@ -45,9 +46,10 @@ export function useAudio() {
     setIsPlaying(false)
   }, [])
 
-  const resume = useCallback(() => {
-    engineRef.current?.resume()
-    setIsPlaying(true)
+  const resume = useCallback(async () => {
+    const ok = (await engineRef.current?.resume()) ?? false
+    setIsPlaying(ok)
+    return ok
   }, [])
 
   const setVolume = useCallback((v: number) => {

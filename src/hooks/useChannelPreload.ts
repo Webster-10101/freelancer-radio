@@ -1,17 +1,18 @@
 import { useEffect, useRef } from 'react'
 import { getChannel } from '../config/channels'
 import { RadioSimulator } from '../engine/RadioSimulator'
+import type { Channel } from '../types'
 
 /**
- * Preloads the current track for the Flow channel on app mount.
- * This warms the browser cache so playback starts faster.
+ * Preloads the current track for the given channel so playback starts faster.
+ * Re-runs when the channel changes.
  */
-export function useChannelPreload() {
+export function useChannelPreload(channelId: Channel['id']) {
   const preloaderRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
-    const flow = getChannel('flow')
-    const simulator = new RadioSimulator(flow)
+    const channel = getChannel(channelId)
+    const simulator = new RadioSimulator(channel)
     const pos = simulator.getPositionAtTime()
 
     const audio = new Audio()
@@ -24,5 +25,5 @@ export function useChannelPreload() {
     return () => {
       audio.src = ''
     }
-  }, [])
+  }, [channelId])
 }

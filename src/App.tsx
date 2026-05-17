@@ -20,15 +20,16 @@ import { track } from '@vercel/analytics'
 
 function AppInner() {
   const [activeTab, setActiveTab] = useState<'channels' | 'triggers'>('channels')
-  const { setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId, activeChannelId, currentTrack } = useAppContext()
+  const { setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId, activeChannelId, currentTrack, selectedChannelId } = useAppContext()
   const chimeRef = useRef<HTMLAudioElement | null>(null)
   const radio = useRadio()
   const triggerAudio = useAudio()
   const timer = useTimer()
   const wakeLock = useWakeLock()
 
-  // Preload current track for each channel so playback starts faster
-  useChannelPreload()
+  // Preload current track for the selected channel so playback starts faster.
+  // Re-runs when the user switches channel before pressing play.
+  useChannelPreload(selectedChannelId)
 
   const isPlaying = radio.isPlaying || triggerAudio.isPlaying
 
@@ -109,20 +110,18 @@ function AppInner() {
     onResume: handleResume,
   })
 
-  // Play chime when timer completes (if trigger has chime enabled)
+  // Play chime when timer completes (if trigger has chime enabled).
+  // getTrigger is module-scope and pure, so it's intentionally absent from deps.
   useEffect(() => {
-    if (timer.state === 'complete' && activeTriggerId) {
-      track('trigger_complete', { trigger: activeTriggerId })
-      const trigger = getTrigger(activeTriggerId)
-      if (trigger.hasChime) {
-        // Create chime audio element if not exists
-        if (!chimeRef.current) {
-          chimeRef.current = new Audio('/audio/chime.mp3')
-        }
-        chimeRef.current.currentTime = 0
-        chimeRef.current.play().catch(() => {})
-      }
+    if (timer.state !== 'complete' || !activeTriggerId) return
+    track('trigger_complete', { trigger: activeTriggerId })
+    const trigger = getTrigger(activeTriggerId)
+    if (!trigger.hasChime) return
+    if (!chimeRef.current) {
+      chimeRef.current = new Audio('/audio/chime.mp3')
     }
+    chimeRef.current.currentTime = 0
+    chimeRef.current.play().catch(() => {})
   }, [timer.state, activeTriggerId])
 
   return (
