@@ -13,7 +13,7 @@ Focus music web app for freelancers — simulated live radio with three channels
 ## Key Files
 | File | Purpose |
 |------|---------|
-| `src/engine/AudioEngine.ts` | Dual-player crossfade, fade-in, preload |
+| `src/engine/AudioEngine.ts` | Single-player audio engine, iOS warm-up, onTrackEnd |
 | `src/engine/RadioSimulator.ts` | Timestamp-based "live radio" position |
 | `src/engine/AnimationEngine.ts` | Canvas gradient blobs |
 | `src/engine/TimerEngine.ts` | Countdown for triggers |
