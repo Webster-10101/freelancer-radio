@@ -33,17 +33,12 @@ function AppInner() {
 
   const isPlaying = radio.isPlaying || triggerAudio.isPlaying
 
-  // Sync radio's current track into app context (for MediaSession + NowPlaying)
+  // Sync radio's current track into app context (for MediaSession + NowPlaying).
+  // Event-driven: radio.currentTrack updates on tune-in, track end, and resync.
+  // Guarded so radio stopping (null) doesn't clobber a trigger's track.
   useEffect(() => {
-    if (!radio.isPlaying) return
-    const syncTrack = () => {
-      const track = radio.getCurrentTrack()
-      if (track) setCurrentTrack(track)
-    }
-    syncTrack()
-    const id = setInterval(syncTrack, 2000)
-    return () => clearInterval(id)
-  }, [radio.isPlaying, radio, setCurrentTrack])
+    if (radio.currentTrack) setCurrentTrack(radio.currentTrack)
+  }, [radio.currentTrack, setCurrentTrack])
 
   const handlePlayChannel = useCallback(async (channel: Channel) => {
     timer.reset()

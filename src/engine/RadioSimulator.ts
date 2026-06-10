@@ -60,8 +60,8 @@ function getTodayString(): string {
 const IDENT_INTERVAL = 5
 
 function buildPlaylist(channel: Channel, seed: number): Track[] {
-  const music = channel.tracks.filter(t => !t.id.includes('ident'))
-  const idents = channel.tracks.filter(t => t.id.includes('ident'))
+  const music = channel.tracks.filter(t => t.kind !== 'ident')
+  const idents = channel.tracks.filter(t => t.kind === 'ident')
 
   const shuffled = seededShuffle(music, seed)
 

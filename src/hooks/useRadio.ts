@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useMemo } from 'react'
+import { useCallback, useRef, useEffect, useMemo, useState } from 'react'
 import { RadioSimulator } from '../engine/RadioSimulator'
 import type { Channel, Track } from '../types'
 import { useAudio } from './useAudio'
@@ -9,6 +9,14 @@ export function useRadio() {
   const currentTrackRef = useRef<Track | null>(null)
   const isActiveRef = useRef(false)
   const isPausedRef = useRef(false)
+  const [currentTrack, setCurrentTrackState] = useState<Track | null>(null)
+
+  // Ref mirrors state: the ref is read inside stable callbacks (same-track
+  // check, onended closure), the state drives re-renders.
+  const setCurrentTrack = useCallback((track: Track | null) => {
+    currentTrackRef.current = track
+    setCurrentTrackState(track)
+  }, [])
 
   const playCurrentPosition = useCallback(async () => {
     const simulator = simulatorRef.current
@@ -22,9 +30,9 @@ export function useRadio() {
       if (Math.abs(pos.seekSeconds - actual) <= 2) return
     }
 
-    currentTrackRef.current = pos.track
+    setCurrentTrack(pos.track)
     await audio.play(pos.track.url, pos.seekSeconds)
-  }, [audio])
+  }, [audio, setCurrentTrack])
 
   const tuneIn = useCallback(async (channel: Channel) => {
     const simulator = new RadioSimulator(channel)
@@ -33,7 +41,7 @@ export function useRadio() {
     isPausedRef.current = false
 
     const pos = simulator.getPositionAtTime()
-    currentTrackRef.current = pos.track
+    setCurrentTrack(pos.track)
     await audio.play(pos.track.url, pos.seekSeconds)
 
     // Single track advancement mechanism: when a track ends, play the next one.
@@ -41,10 +49,10 @@ export function useRadio() {
     audio.onTrackEnd(() => {
       if (!simulatorRef.current || !isActiveRef.current || isPausedRef.current) return
       const newPos = simulatorRef.current.getPositionAtTime()
-      currentTrackRef.current = newPos.track
+      setCurrentTrack(newPos.track)
       audio.play(newPos.track.url, newPos.seekSeconds)
     })
-  }, [audio])
+  }, [audio, setCurrentTrack])
 
   const pause = useCallback(() => {
     isPausedRef.current = true
@@ -62,10 +70,10 @@ export function useRadio() {
   const stop = useCallback(() => {
     audio.pause()
     simulatorRef.current = null
-    currentTrackRef.current = null
+    setCurrentTrack(null)
     isActiveRef.current = false
     isPausedRef.current = false
-  }, [audio])
+  }, [audio, setCurrentTrack])
 
   // Re-sync when tab becomes visible (browser may have drifted while backgrounded)
   useEffect(() => {
@@ -79,8 +87,6 @@ export function useRadio() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [playCurrentPosition])
 
-  const getCurrentTrack = useCallback(() => currentTrackRef.current, [])
-
   return useMemo(
     () => ({
       tuneIn,
@@ -91,8 +97,8 @@ export function useRadio() {
       isPlaying: audio.isPlaying,
       isLoading: audio.isLoading,
       volume: audio.volume,
-      getCurrentTrack,
+      currentTrack,
     }),
-    [tuneIn, stop, pause, resume, audio.setVolume, audio.isPlaying, audio.isLoading, audio.volume, getCurrentTrack],
+    [tuneIn, stop, pause, resume, audio.setVolume, audio.isPlaying, audio.isLoading, audio.volume, currentTrack],
   )
 }

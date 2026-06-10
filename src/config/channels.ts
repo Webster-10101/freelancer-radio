@@ -73,6 +73,7 @@ export const channels: Channel[] = [
         duration: 2,
         title: 'Ident',
         artist: 'Freelancer Radio',
+        kind: 'ident',
       },
       {
         id: 'ident-calm-2',
@@ -80,6 +81,7 @@ export const channels: Channel[] = [
         duration: 4,
         title: 'Ident',
         artist: 'Freelancer Radio',
+        kind: 'ident',
       },
     ],
     get totalDuration() {
@@ -213,6 +215,7 @@ export const channels: Channel[] = [
         duration: 2,
         title: 'Ident',
         artist: 'Freelancer Radio',
+        kind: 'ident',
       },
       {
         id: 'ident-flow-2',
@@ -220,6 +223,7 @@ export const channels: Channel[] = [
         duration: 4,
         title: 'Ident',
         artist: 'Freelancer Radio',
+        kind: 'ident',
       },
     ],
     get totalDuration() {
@@ -346,6 +350,7 @@ export const channels: Channel[] = [
         duration: 2,
         title: 'Ident',
         artist: 'Freelancer Radio',
+        kind: 'ident',
       },
       {
         id: 'ident-energy-2',
@@ -353,6 +358,7 @@ export const channels: Channel[] = [
         duration: 4,
         title: 'Ident',
         artist: 'Freelancer Radio',
+        kind: 'ident',
       },
     ],
     get totalDuration() {

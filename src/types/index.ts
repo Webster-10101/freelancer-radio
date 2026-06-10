@@ -4,6 +4,7 @@ export interface Track {
   duration: number // seconds
   title: string
   artist: string
+  kind?: 'music' | 'ident' // omitted = music
   buyUrl?: string
 }
 
