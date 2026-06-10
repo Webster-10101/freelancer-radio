@@ -40,6 +40,8 @@ export function useListenerCount(isPlaying: boolean) {
     }
 
     const poll = async () => {
+      // The count is cosmetic — don't keep hitting the API from hidden tabs.
+      if (document.visibilityState === 'hidden') return
       try {
         const res = await fetch(API_URL)
         const data = await res.json()

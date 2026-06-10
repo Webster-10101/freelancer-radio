@@ -20,7 +20,7 @@ import { track } from '@vercel/analytics'
 
 function AppInner() {
   const [activeTab, setActiveTab] = useState<'channels' | 'triggers'>('channels')
-  const { setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId, activeChannelId, currentTrack, selectedChannelId } = useAppContext()
+  const { mode, setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId, activeChannelId, currentTrack, selectedChannelId } = useAppContext()
   const chimeRef = useRef<HTMLAudioElement | null>(null)
   const radio = useRadio()
   const triggerAudio = useAudio()
@@ -78,17 +78,26 @@ function AppInner() {
     stopAll()
   }, [timer, triggerAudio, stopAll, wakeLock, activeTriggerId])
 
+  // Pause/resume must be mode-aware: both audio engines keep their last
+  // loaded track after stopping, so resuming the inactive one would play
+  // stale audio over the active mode.
   const handlePause = useCallback(() => {
-    radio.pause()
-    triggerAudio.pause()
-    timer.pause()
-  }, [radio, triggerAudio, timer])
+    if (mode === 'channel') {
+      radio.pause()
+    } else if (mode === 'trigger') {
+      triggerAudio.pause()
+      timer.pause()
+    }
+  }, [mode, radio, triggerAudio, timer])
 
   const handleResume = useCallback(() => {
-    radio.resume()
-    triggerAudio.resume()
-    timer.resume()
-  }, [radio, triggerAudio, timer])
+    if (mode === 'channel') {
+      radio.resume()
+    } else if (mode === 'trigger') {
+      triggerAudio.resume()
+      timer.resume()
+    }
+  }, [mode, radio, triggerAudio, timer])
 
   const handleVolumeChange = useCallback((v: number) => {
     radio.setVolume(v)

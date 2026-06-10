@@ -24,16 +24,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png}'],
-        runtimeCaching: [
-          {
-            urlPattern: /\.mp3$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'audio-cache',
-              expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
-            },
-          },
-        ],
+        // No runtime caching for audio: media fetches use Range requests,
+        // which Workbox can't cache or replay correctly, and live-sync
+        // radio has no meaningful offline mode. Caching tracks only
+        // churned Cache Storage (up to 50 multi-MB files) for no benefit.
       },
     }),
   ],

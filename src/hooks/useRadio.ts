@@ -52,6 +52,9 @@ export function useRadio() {
   }, [audio])
 
   const resume = useCallback(() => {
+    // Don't resume a stale track after stop() — the audio element keeps
+    // its last src, so play() would restart the old radio audio.
+    if (!isActiveRef.current) return
     isPausedRef.current = false
     audio.resume()
   }, [audio])
