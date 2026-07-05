@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "ios:sync": "npm run build && cap sync ios",
+    "ios:sync": "npm run build && rm -rf dist/dev-audio && cap sync ios",
     "ios:open": "cap open ios"
   },
   "dependencies": {
