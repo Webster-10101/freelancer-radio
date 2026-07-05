@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { formatTime } from '../../utils/time'
+import { breathePhaseHaptic, type BreathPhase } from '../../native/breatheHaptics'
 
 interface BreatheViewProps {
   onStop: () => void
@@ -29,11 +30,19 @@ export function BreatheView({ onStop, timerRemainingMs }: BreatheViewProps) {
   const startRef = useRef(performance.now())
   const [breath, setBreath] = useState({ label: 'Breathe in', progress: 0 })
   const frameRef = useRef<number>(0)
+  const lastPhaseRef = useRef<string | null>(null)
 
   useEffect(() => {
     const tick = () => {
       const elapsed = (performance.now() - startRef.current) / 1000
-      setBreath(getBreathState(elapsed))
+      const state = getBreathState(elapsed)
+      // Haptic cue on each phase transition (native only) — usable with
+      // eyes closed or phone in pocket
+      if (state.label !== lastPhaseRef.current) {
+        lastPhaseRef.current = state.label
+        breathePhaseHaptic(state.label as BreathPhase)
+      }
+      setBreath(state)
       frameRef.current = requestAnimationFrame(tick)
     }
     frameRef.current = requestAnimationFrame(tick)

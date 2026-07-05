@@ -1,6 +1,7 @@
 export class AudioEngine {
   private player: HTMLAudioElement
   private _volume = 1
+  private _fade = 1
   private onTrackEndCallback: (() => void) | null = null
   private warmedUp = false
 
@@ -27,7 +28,7 @@ export class AudioEngine {
   async play(url: string, seekTo = 0): Promise<boolean> {
     this.player.src = url
     this.player.currentTime = seekTo
-    this.player.volume = this._volume
+    this.player.volume = this._volume * this._fade
     this.player.onended = () => this.onTrackEndCallback?.()
 
     try {
@@ -44,7 +45,7 @@ export class AudioEngine {
   }
 
   async resume(): Promise<boolean> {
-    this.player.volume = this._volume
+    this.player.volume = this._volume * this._fade
     try {
       await this.player.play()
       return true
@@ -55,7 +56,17 @@ export class AudioEngine {
 
   setVolume(v: number): void {
     this._volume = Math.max(0, Math.min(1, v))
-    this.player.volume = this._volume
+    this.player.volume = this._volume * this._fade
+  }
+
+  /**
+   * Fade multiplier layered on top of the user's volume (sleep timer fade-out).
+   * Kept separate from _volume so fading and restoring never clobbers the
+   * volume slider position.
+   */
+  setFade(f: number): void {
+    this._fade = Math.max(0, Math.min(1, f))
+    this.player.volume = this._volume * this._fade
   }
 
   getVolume(): number {

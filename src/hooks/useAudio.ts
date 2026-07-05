@@ -57,6 +57,10 @@ export function useAudio() {
     setVolumeState(v)
   }, [])
 
+  const setFade = useCallback((f: number) => {
+    engineRef.current?.setFade(f)
+  }, [])
+
   const onTrackEnd = useCallback((callback: () => void) => {
     engineRef.current?.onTrackEnd(callback)
   }, [])
@@ -74,6 +78,7 @@ export function useAudio() {
     pause,
     resume,
     setVolume,
+    setFade,
     onTrackEnd,
     getCurrentTime,
     getCurrentSrc,

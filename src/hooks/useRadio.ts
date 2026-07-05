@@ -94,11 +94,12 @@ export function useRadio() {
       pause,
       resume,
       setVolume: audio.setVolume,
+      setFade: audio.setFade,
       isPlaying: audio.isPlaying,
       isLoading: audio.isLoading,
       volume: audio.volume,
       currentTrack,
     }),
-    [tuneIn, stop, pause, resume, audio.setVolume, audio.isPlaying, audio.isLoading, audio.volume, currentTrack],
+    [tuneIn, stop, pause, resume, audio.setVolume, audio.setFade, audio.isPlaying, audio.isLoading, audio.volume, currentTrack],
   )
 }

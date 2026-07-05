@@ -2,6 +2,10 @@ import { useAppContext } from '../../state/AppContext'
 import { getChannel } from '../../config/channels'
 import { ChannelSelect } from './ChannelSelect'
 import { VolumeSlider } from '../player/VolumeSlider'
+import { SleepTimerControl } from './SleepTimerControl'
+import type { SleepMinutes } from '../../hooks/useSleepTimer'
+import { isNative } from '../../native/platform'
+import { RoutePicker } from '../../native/routePicker'
 import type { Channel } from '../../types'
 import { track } from '@vercel/analytics'
 
@@ -20,6 +24,9 @@ interface ChannelPanelProps {
   volume: number
   onVolumeChange: (v: number) => void
   listenerCount: number | null
+  sleepMinutes: SleepMinutes | null
+  sleepRemainingMs: number
+  onSleepSelect: (minutes: SleepMinutes | null) => void
 }
 
 export function ChannelPanel({
@@ -31,6 +38,9 @@ export function ChannelPanel({
   volume,
   onVolumeChange,
   listenerCount,
+  sleepMinutes,
+  sleepRemainingMs,
+  onSleepSelect,
 }: ChannelPanelProps) {
   const { mode, selectedChannelId, setSelectedChannel } = useAppContext()
   const selectedChannel = getChannel(selectedChannelId)
@@ -144,6 +154,31 @@ export function ChannelPanel({
         <VolumeSlider volume={volume} onChange={onVolumeChange} />
       </div>
 
+      {/* Sleep timer + AirPlay — shown while tuned in */}
+      <div
+        className={`mt-5 flex items-center gap-3 transition-all duration-500 ${
+          mode === 'channel'
+            ? 'translate-y-0 opacity-100'
+            : 'pointer-events-none translate-y-2 opacity-0'
+        }`}
+      >
+        <SleepTimerControl
+          minutes={sleepMinutes}
+          remainingMs={sleepRemainingMs}
+          onSelect={onSleepSelect}
+        />
+        {isNative && (
+          <button
+            onClick={() => RoutePicker.show().catch(() => {})}
+            aria-label="Choose audio output (AirPlay)"
+            className="flex items-center gap-1.5 rounded-full border border-white/[0.06] px-3 py-1.5 text-[12px] font-light tracking-wide text-white/25 transition-all duration-300 hover:border-white/[0.12] hover:text-white/40 active:scale-95"
+          >
+            <AirPlayIcon />
+            <span>AirPlay</span>
+          </button>
+        )}
+      </div>
+
       {/* Keyframes for breathing glow */}
       <style>{`
         @keyframes breathe {
@@ -152,6 +187,15 @@ export function ChannelPanel({
         }
       `}</style>
     </div>
+  )
+}
+
+function AirPlayIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1" />
+      <polygon points="12 15 17 21 7 21 12 15" fill="currentColor" stroke="none" />
+    </svg>
   )
 }
 

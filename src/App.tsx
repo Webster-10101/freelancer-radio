@@ -10,6 +10,7 @@ import { NowPlaying } from './components/player/NowPlaying'
 import { useRadio } from './hooks/useRadio'
 import { useAudio } from './hooks/useAudio'
 import { useTimer } from './hooks/useTimer'
+import { useSleepTimer, type SleepMinutes } from './hooks/useSleepTimer'
 import { useWakeLock } from './hooks/useWakeLock'
 import { useChannelPreload } from './hooks/useChannelPreload'
 import { useMediaSession } from './hooks/useMediaSession'
@@ -26,6 +27,16 @@ function AppInner() {
   const triggerAudio = useAudio()
   const timer = useTimer()
   const wakeLock = useWakeLock()
+
+  // Sleep timer (channels only): fades out over the last 20s, then stops.
+  const sleepTimer = useSleepTimer({
+    setFade: radio.setFade,
+    onComplete: () => {
+      track('sleep_timer_complete')
+      radio.stop()
+      stopAll()
+    },
+  })
 
   // Preload current track for the selected channel so playback starts faster.
   // Re-runs when the user switches channel before pressing play.
@@ -99,6 +110,22 @@ function AppInner() {
     triggerAudio.setVolume(v)
   }, [radio, triggerAudio])
 
+  const handleSleepSelect = useCallback((minutes: SleepMinutes | null) => {
+    if (minutes === null) {
+      track('sleep_timer_cancel')
+      sleepTimer.cancel()
+    } else {
+      track('sleep_timer_set', { minutes })
+      sleepTimer.start(minutes)
+    }
+  }, [sleepTimer])
+
+  // Leaving channel mode (trigger started / stop all) drops the sleep timer
+  const sleepCancel = sleepTimer.cancel
+  useEffect(() => {
+    if (mode !== 'channel') sleepCancel()
+  }, [mode, sleepCancel])
+
   // Listener presence counter
   const listenerCount = useListenerCount(isPlaying)
 
@@ -144,6 +171,9 @@ function AppInner() {
             volume={radio.volume}
             onVolumeChange={handleVolumeChange}
             listenerCount={listenerCount}
+            sleepMinutes={sleepTimer.minutes}
+            sleepRemainingMs={sleepTimer.remainingMs}
+            onSleepSelect={handleSleepSelect}
           />
         ) : (
           <TriggerPanel

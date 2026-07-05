@@ -21,6 +21,10 @@ Focus music web app for freelancers — simulated live radio with three channels
 | `src/config/triggers.ts` | Trigger definitions |
 | `src/config/audio.ts` | Audio base URL resolver |
 | `src/state/AppContext.tsx` | Global state |
+| `src/hooks/useSleepTimer.ts` | Sleep timer (channels) — wall-clock countdown, 20s fade via `AudioEngine.setFade` |
+| `src/native/` | Capacitor-only code: platform check, haptics (Breathe), RoutePicker JS shim |
+| `ios/App/App/RoutePickerPlugin.swift` | In-app Capacitor plugin — presents AirPlay route picker |
+| `ios/App/App/MainViewController.swift` | Registers in-app plugins (referenced from Main.storyboard) |
 
 ## Commands
 ```bash
@@ -37,6 +41,9 @@ npm run ios:open # Open the Xcode project
 - Locked-screen audio = AVAudioSession `.playback` in `AppDelegate.swift` + `UIBackgroundModes: audio` in `Info.plist` — don't remove either
 - Web assets are copied into `ios/App/App/public` by `cap sync` (gitignored) — edit `src/`, never the copy
 - Device runs: open Xcode, select team + device, Cmd-R
+- In-app plugins (e.g. RoutePicker) must be registered in `MainViewController.capacitorDidLoad()` — Capacitor 5+ doesn't auto-discover plugins in the app binary
+- New Swift files need hand-adding to `project.pbxproj` (old-style project, no file-system-synced groups): PBXBuildFile + PBXFileReference + group children + Sources phase
+- Native-only UI gates on `isNative` from `src/native/platform.ts`
 
 ## URLs
 - Live: https://freelancerad.io
