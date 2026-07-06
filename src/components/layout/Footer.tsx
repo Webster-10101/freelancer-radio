@@ -7,7 +7,7 @@ export function Footer({ clearNowPlaying = false }: { clearNowPlaying?: boolean 
   return (
     <footer
       className={`mt-auto px-6 pt-6 text-center sm:pt-8 ${
-        clearNowPlaying ? 'pb-20' : 'pb-[calc(1.5rem+env(safe-area-inset-bottom))]'
+        clearNowPlaying ? 'pb-20' : 'pb-[calc(0.75rem+env(safe-area-inset-bottom))]'
       }`}
     >
       <p className="text-[11px] leading-relaxed tracking-wide text-white/20">

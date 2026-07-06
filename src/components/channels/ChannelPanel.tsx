@@ -73,7 +73,7 @@ export function ChannelPanel({
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col items-center px-6 pt-4 sm:pt-8">
-      <p className="mb-8 text-center text-[13px] font-light tracking-[0.04em] text-white/25 sm:mb-14">
+      <p className="mb-10 text-center text-[13px] font-light tracking-[0.04em] text-white/25 sm:mb-14">
         Press play. Do one thing. Come back when you're done.
       </p>
 
@@ -126,7 +126,7 @@ export function ChannelPanel({
       </div>
 
       {/* Channel selector */}
-      <div className="mt-8 sm:mt-12">
+      <div className="mt-10 sm:mt-12">
         <ChannelSelect
           selectedId={selectedChannelId}
           onChange={handleChannelChange}
