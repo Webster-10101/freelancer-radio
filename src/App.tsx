@@ -171,7 +171,8 @@ function AppInner() {
       <Header />
       <ModeSelector activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main className="flex-1 pb-24">
+      {/* Bottom clearance only needed when the fixed NowPlaying bar shows (triggers tab) */}
+      <main className={`flex-1 ${activeTab === 'channels' ? 'pb-6' : 'pb-24'}`}>
         {activeTab === 'channels' ? (
           <ChannelPanel
             onPlay={handlePlayChannel}
@@ -208,7 +209,7 @@ function AppInner() {
 
       <Toast message={toast} />
 
-      <Footer />
+      <Footer clearNowPlaying={activeTab === 'triggers'} />
     </AppShell>
   )
 }

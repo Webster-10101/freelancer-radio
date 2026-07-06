@@ -6,6 +6,7 @@ import { SleepTimerControl } from './SleepTimerControl'
 import type { SleepMinutes } from '../../hooks/useSleepTimer'
 import { isNative } from '../../native/platform'
 import { RoutePicker } from '../../native/routePicker'
+import { uiTapHaptic } from '../../native/uiHaptics'
 import type { Channel } from '../../types'
 import { track } from '@vercel/analytics'
 
@@ -49,6 +50,7 @@ export function ChannelPanel({
   const glow = CHANNEL_GLOW[selectedChannelId]
 
   const handleHeroClick = () => {
+    uiTapHaptic('medium')
     if (mode !== 'channel') {
       onPlay(selectedChannel)
     } else if (isPlaying) {
@@ -59,6 +61,7 @@ export function ChannelPanel({
   }
 
   const handleChannelChange = (id: Channel['id']) => {
+    uiTapHaptic('light')
     if (mode === 'channel') {
       track('channel_switch', { from: selectedChannelId, to: id })
     }
@@ -69,8 +72,8 @@ export function ChannelPanel({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center px-6 pt-8">
-      <p className="mb-14 text-center text-[13px] font-light tracking-[0.04em] text-white/25">
+    <div className="mx-auto flex w-full max-w-xl flex-col items-center px-6 pt-4 sm:pt-8">
+      <p className="mb-8 text-center text-[13px] font-light tracking-[0.04em] text-white/25 sm:mb-14">
         Press play. Do one thing. Come back when you're done.
       </p>
 
@@ -103,7 +106,7 @@ export function ChannelPanel({
         <button
           onClick={handleHeroClick}
           disabled={isLoading}
-          className={`group relative flex h-40 w-40 items-center justify-center rounded-full transition-all duration-300 ${
+          className={`group relative flex h-36 w-36 items-center justify-center rounded-full transition-all duration-300 sm:h-40 sm:w-40 ${
             isLoading
               ? 'cursor-wait border border-white/10 bg-white/[0.04]'
               : isChannelPlaying
@@ -123,7 +126,7 @@ export function ChannelPanel({
       </div>
 
       {/* Channel selector */}
-      <div className="mt-12">
+      <div className="mt-8 sm:mt-12">
         <ChannelSelect
           selectedId={selectedChannelId}
           onChange={handleChannelChange}
@@ -145,7 +148,7 @@ export function ChannelPanel({
 
       {/* Volume slider — fades in when playing */}
       <div
-        className={`mt-8 transition-all duration-500 ${
+        className={`mt-6 transition-all duration-500 sm:mt-8 ${
           mode === 'channel'
             ? 'translate-y-0 opacity-100'
             : 'pointer-events-none translate-y-2 opacity-0'

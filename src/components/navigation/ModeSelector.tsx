@@ -5,7 +5,7 @@ interface ModeSelectorProps {
 
 export function ModeSelector({ activeTab, onTabChange }: ModeSelectorProps) {
   return (
-    <div className="flex justify-center py-6">
+    <div className="flex justify-center py-4 sm:py-6">
       <div className="flex rounded-full border border-white/[0.06] bg-white/[0.02] p-1">
         <button
           onClick={() => onTabChange('channels')}

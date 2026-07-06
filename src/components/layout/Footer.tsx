@@ -1,6 +1,15 @@
-export function Footer() {
+/**
+ * clearNowPlaying: pad the bottom to keep links tappable above the fixed
+ * NowPlaying bar (triggers tab). On the channels tab the bar is hidden, so
+ * only the home-indicator safe area is needed.
+ */
+export function Footer({ clearNowPlaying = false }: { clearNowPlaying?: boolean }) {
   return (
-    <footer className="mt-auto px-6 pb-20 pt-8 text-center">
+    <footer
+      className={`mt-auto px-6 pt-6 text-center sm:pt-8 ${
+        clearNowPlaying ? 'pb-20' : 'pb-[calc(1.5rem+env(safe-area-inset-bottom))]'
+      }`}
+    >
       <p className="text-[11px] leading-relaxed tracking-wide text-white/20">
         freelancerad.io was built by{' '}
         <a
