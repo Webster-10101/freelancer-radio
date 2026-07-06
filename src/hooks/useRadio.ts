@@ -49,8 +49,13 @@ export function useRadio() {
     audio.onTrackEnd(() => {
       if (!simulatorRef.current || !isActiveRef.current || isPausedRef.current) return
       const newPos = simulatorRef.current.getPositionAtTime()
+      // At a natural track boundary the live position is only ahead of us by
+      // event + network latency, but seeking there clips the head of the new
+      // track — fatal for the 2-4s idents. Snap small offsets to 0; large
+      // offsets mean real drift (throttled tab), so honour the live position.
+      const seek = newPos.seekSeconds < 5 ? 0 : newPos.seekSeconds
       setCurrentTrack(newPos.track)
-      audio.play(newPos.track.url, newPos.seekSeconds)
+      audio.play(newPos.track.url, seek)
     })
   }, [audio, setCurrentTrack])
 

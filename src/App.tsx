@@ -3,6 +3,7 @@ import { AppProvider, useAppContext } from './state/AppContext'
 import { AppShell } from './components/layout/AppShell'
 import { Header } from './components/layout/Header'
 import { Footer } from './components/layout/Footer'
+import { Toast, TOAST_MS } from './components/layout/Toast'
 import { ModeSelector } from './components/navigation/ModeSelector'
 import { ChannelPanel } from './components/channels/ChannelPanel'
 import { TriggerPanel } from './components/triggers/TriggerPanel'
@@ -23,6 +24,8 @@ function AppInner() {
   const [activeTab, setActiveTab] = useState<'channels' | 'triggers'>('channels')
   const { mode, setChannel, setTrigger, stopAll, setCurrentTrack, activeTriggerId, activeChannelId, currentTrack, selectedChannelId } = useAppContext()
   const chimeRef = useRef<HTMLAudioElement | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const radio = useRadio()
   const triggerAudio = useAudio()
   const timer = useTimer()
@@ -61,7 +64,15 @@ function AppInner() {
     await radio.tuneIn(channel)
   }, [radio, timer, triggerAudio, setChannel, wakeLock])
 
+  const showToast = useCallback((message: string) => {
+    setToast(message)
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current)
+    toastTimeoutRef.current = setTimeout(() => setToast(null), TOAST_MS)
+  }, [])
+
   const handlePlayTrigger = useCallback(async (trigger: Trigger) => {
+    // The mode-change effect below drops the sleep timer; tell the user why
+    if (sleepTimer.isActive) showToast('Sleep timer cancelled')
     radio.stop()
 
     track('trigger_start', { trigger: trigger.id, duration_min: Math.round(trigger.duration / 60) })
@@ -70,7 +81,7 @@ function AppInner() {
     await triggerAudio.play(trigger.track.url)
     timer.start(trigger.duration * 1000)
     wakeLock.request()
-  }, [radio, triggerAudio, timer, setTrigger, setCurrentTrack, wakeLock])
+  }, [radio, triggerAudio, timer, setTrigger, setCurrentTrack, wakeLock, sleepTimer.isActive, showToast])
 
   const handleStopTrigger = useCallback(() => {
     if (activeTriggerId) {
@@ -194,6 +205,8 @@ function AppInner() {
         onPause={handlePause}
         onResume={handleResume}
       />
+
+      <Toast message={toast} />
 
       <Footer />
     </AppShell>
