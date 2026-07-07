@@ -18,6 +18,7 @@ import { useMediaSession } from './hooks/useMediaSession'
 import { useListenerCount } from './hooks/useListenerCount'
 import type { Channel, Trigger } from './types'
 import { getTrigger } from './config/triggers'
+import { startTriggerActivity, setTriggerActivityPaused, endTriggerActivity } from './native/liveActivity'
 import { track } from '@vercel/analytics'
 
 function AppInner() {
@@ -80,6 +81,7 @@ function AppInner() {
     setCurrentTrack(trigger.track)
     await triggerAudio.play(trigger.track.url)
     timer.start(trigger.duration * 1000)
+    startTriggerActivity(trigger)
     wakeLock.request()
   }, [radio, triggerAudio, timer, setTrigger, setCurrentTrack, wakeLock, sleepTimer.isActive, showToast])
 
@@ -91,6 +93,7 @@ function AppInner() {
     }
     timer.reset()
     triggerAudio.pause()
+    endTriggerActivity()
     wakeLock.release()
     stopAll()
   }, [timer, triggerAudio, stopAll, wakeLock, activeTriggerId])
@@ -104,6 +107,7 @@ function AppInner() {
     } else if (mode === 'trigger') {
       triggerAudio.pause()
       timer.pause()
+      setTriggerActivityPaused(true, timer.remainingMs)
     }
   }, [mode, radio, triggerAudio, timer])
 
@@ -113,6 +117,7 @@ function AppInner() {
     } else if (mode === 'trigger') {
       triggerAudio.resume()
       timer.resume()
+      setTriggerActivityPaused(false, timer.remainingMs)
     }
   }, [mode, radio, triggerAudio, timer])
 
@@ -157,6 +162,7 @@ function AppInner() {
   useEffect(() => {
     if (timer.state !== 'complete' || !activeTriggerId) return
     track('trigger_complete', { trigger: activeTriggerId })
+    endTriggerActivity()
     const trigger = getTrigger(activeTriggerId)
     if (!trigger.hasChime) return
     if (!chimeRef.current) {
