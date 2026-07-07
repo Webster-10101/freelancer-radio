@@ -27,7 +27,7 @@ export function useMediaSession({
     if (track && channelName) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: track.title,
-        artist: track.artist || 'Freelancer Radio',
+        artist: track.artist || 'Freelance Radio',
         album: `${channelName} — freelancerad.io`,
         artwork: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
