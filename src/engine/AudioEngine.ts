@@ -1,3 +1,5 @@
+import { isNative } from '../native/platform'
+
 export class AudioEngine {
   private player: HTMLAudioElement
   private _volume = 1
@@ -9,6 +11,27 @@ export class AudioEngine {
     this.player = new Audio()
     this.player.crossOrigin = 'anonymous'
     this.player.preload = 'auto'
+    if (isNative) this.logBufferingEvents()
+  }
+
+  /**
+   * Diagnostic for the TestFlight "rebuffers on return from Live Activity"
+   * report: logs stalls with visibility + buffered-ahead so an Xcode run
+   * shows whether the stall lines up with foregrounding. Native only.
+   */
+  private logBufferingEvents(): void {
+    const log = (event: string) => {
+      const p = this.player
+      const ahead = p.buffered.length ? p.buffered.end(p.buffered.length - 1) - p.currentTime : 0
+      console.log(
+        `[audio] ${event} t=${p.currentTime.toFixed(1)} ahead=${ahead.toFixed(1)}s ` +
+          `visible=${document.visibilityState} ready=${p.readyState} paused=${p.paused}`,
+      )
+    }
+    for (const event of ['waiting', 'stalled', 'playing', 'pause', 'emptied', 'loadstart']) {
+      this.player.addEventListener(event, () => log(event))
+    }
+    document.addEventListener('visibilitychange', () => log(`visibility:${document.visibilityState}`))
   }
 
   /** Warm up audio element on first user gesture (required for iOS). */
