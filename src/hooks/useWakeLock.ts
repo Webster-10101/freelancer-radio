@@ -7,7 +7,12 @@ export function useWakeLock() {
   const acquire = useCallback(async () => {
     if (!('wakeLock' in navigator)) return
     try {
-      wakeLockRef.current = await navigator.wakeLock.request('screen')
+      const sentinel = await navigator.wakeLock.request('screen')
+      // The browser auto-releases on hide; clear the ref so visibility can re-acquire.
+      sentinel.addEventListener('release', () => {
+        if (wakeLockRef.current === sentinel) wakeLockRef.current = null
+      })
+      wakeLockRef.current = sentinel
     } catch {
       // Wake lock request failed — usually means page not visible.
       // We'll retry on the next visibilitychange when the page returns.
