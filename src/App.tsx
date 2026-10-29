@@ -28,7 +28,7 @@ function AppInner() {
   const [toast, setToast] = useState<string | null>(null)
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const radio = useRadio()
-  const triggerAudio = useAudio()
+  const triggerAudio = useAudio('trigger')
   const timer = useTimer()
   const wakeLock = useWakeLock()
 

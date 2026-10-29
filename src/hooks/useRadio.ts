@@ -4,7 +4,7 @@ import type { Channel, Track } from '../types'
 import { useAudio } from './useAudio'
 
 export function useRadio() {
-  const audio = useAudio()
+  const audio = useAudio('radio')
   const simulatorRef = useRef<RadioSimulator | null>(null)
   const currentTrackRef = useRef<Track | null>(null)
   const isActiveRef = useRef(false)

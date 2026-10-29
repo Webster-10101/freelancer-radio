@@ -129,10 +129,20 @@ struct TriggerLiveActivity: Widget {
                     .font(.caption2.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(color)
-                    .frame(maxWidth: 44)
+                    // Timer text sizes itself for the widest value; a fixed
+                    // width keeps it from being clipped to nothing.
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 44, alignment: .trailing)
             } minimal: {
-                Image(systemName: "timer")
+                // Minimal is what shows when another activity (e.g. Now
+                // Playing) shares the island, so it carries the countdown too.
+                CountdownText(state: context.state, attributes: context.attributes)
+                    .font(.system(size: 11, weight: .semibold))
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.6)
                     .foregroundStyle(color)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 36)
             }
         }
     }

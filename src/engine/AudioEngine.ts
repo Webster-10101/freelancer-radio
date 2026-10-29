@@ -5,9 +5,9 @@ export class AudioEngine {
   private _volume = 1
   private _fade = 1
   private onTrackEndCallback: (() => void) | null = null
-  private warmedUp = false
+  private warmUpPromise: Promise<void> | null = null
 
-  constructor() {
+  constructor(private readonly label = 'audio') {
     this.player = new Audio()
     this.player.crossOrigin = 'anonymous'
     this.player.preload = 'auto'
@@ -24,7 +24,7 @@ export class AudioEngine {
       const p = this.player
       const ahead = p.buffered.length ? p.buffered.end(p.buffered.length - 1) - p.currentTime : 0
       console.log(
-        `[audio] ${event} t=${p.currentTime.toFixed(1)} ahead=${ahead.toFixed(1)}s ` +
+        `[${this.label}] ${event} t=${p.currentTime.toFixed(1)} ahead=${ahead.toFixed(1)}s ` +
           `visible=${document.visibilityState} ready=${p.readyState} paused=${p.paused}`,
       )
     }
@@ -34,18 +34,29 @@ export class AudioEngine {
     document.addEventListener('visibilitychange', () => log(`visibility:${document.visibilityState}`))
   }
 
-  /** Warm up audio element on first user gesture (required for iOS). */
-  async warmUp(): Promise<void> {
-    if (this.warmedUp) return
-    const silence =
+  /**
+   * Warm up audio element on first user gesture (required for iOS).
+   * Shared promise so concurrent callers don't reset src to silence twice,
+   * and capped so a stalled silence clip can't hold up the real track.
+   */
+  warmUp(): Promise<void> {
+    if (!this.warmUpPromise) {
+      const silence =
       'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwMHAAAAAAD/+1DEAAAB8ANeUAAAIiIkq850IQQAACH/EcRE4jkf4CAYBA4PB4IBgCAYPg+XB9/ygIBgEAQCBwfL/WD4f/6gfB8HxQEMAABh0MAJgAADFj/+1DEFQAFnF1TnmHgAK0MKjedPCQAkIIAnOMA2B4HhTMSmEQmEgEpzjSYLEM0UaBoJJItFJImiS0jTBsLEJZKJYoF0G2DYIoU/+oVEBRFBhMhBBRFBh/6jUVEBQOwGIOoqA='
-    try {
       this.player.src = silence
-      await this.player.play().then(() => this.player.pause())
-    } catch {
-      // Some browsers may still block — that's OK
+      const unlock = this.player
+        .play()
+        .then(() => {
+          // A late resolve must not pause the real track that replaced it
+          if (this.player.src === silence) this.player.pause()
+        })
+        .catch(() => {
+          // Some browsers may still block — that's OK
+        })
+      const cap = new Promise<void>((resolve) => setTimeout(resolve, 500))
+      this.warmUpPromise = Promise.race([unlock, cap])
     }
-    this.warmedUp = true
+    return this.warmUpPromise
   }
 
   async play(url: string, seekTo = 0): Promise<boolean> {
