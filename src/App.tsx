@@ -58,6 +58,7 @@ function AppInner() {
   const handlePlayChannel = useCallback(async (channel: Channel) => {
     timer.reset()
     triggerAudio.pause()
+    endTriggerActivity()
     wakeLock.release()
 
     track('channel_play', { channel: channel.id })

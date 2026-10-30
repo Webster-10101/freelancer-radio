@@ -18,6 +18,13 @@ public class TriggerActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "end", returnType: CAPPluginReturnPromise)
     ]
 
+    /// The app process can die without JS ending the activity (force-quit,
+    /// crash), so clear anything left over from a previous run on launch.
+    override public func load() {
+        guard #available(iOS 16.2, *) else { return }
+        Task { await Self.endAllActivities() }
+    }
+
     @objc func start(_ call: CAPPluginCall) {
         guard #available(iOS 16.2, *) else {
             call.resolve()
@@ -93,8 +100,20 @@ public class TriggerActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// Blocking variant for applicationWillTerminate, where there's no
+    /// run loop left to finish an async Task on.
+    static func endAllActivitiesBeforeExit() {
+        guard #available(iOS 16.2, *) else { return }
+        let done = DispatchSemaphore(value: 0)
+        Task.detached {
+            await endAllActivities()
+            done.signal()
+        }
+        _ = done.wait(timeout: .now() + 2)
+    }
+
     @available(iOS 16.2, *)
-    private static func endAllActivities() async {
+    static func endAllActivities() async {
         for activity in Activity<TriggerActivityAttributes>.activities {
             await activity.end(nil, dismissalPolicy: .immediate)
         }
